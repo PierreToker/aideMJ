@@ -17,8 +17,7 @@ function constructionTableau($colonne,$ligne){
         $tableau[count($tableau)+1] = "<tr>";
         for($x=0;$x<$colonne;$x++){
             $position = "t1_".$lettre.$x;
-            $tableau[count($tableau)+1] = "<td>0</td>"; //contenant de la cellule
-            $tableau[count($tableau)+1] = $position; //code de la cellule
+            $tableau[count($tableau)+1] = "<td><a href='index.php?uc=generationTableau&action=voirDetailCellule' style='cursor:pointer;'><input type='hidden' name='cellule' value='$position'>Vide</td>"; //contenant de la cellule
         }
         $tableau[count($tableau)+1] = "</tr>";
     }
@@ -52,6 +51,7 @@ function verifierSiTableauComplet($colonne,$ligne){
                if ($compteur == 0){ //Si la cellule n'existe pas, il faut la créer
                     $position = $position."\r\n";
                     fputs($fichier, $position);
+                    fputs($fichier,"\r\n");
                }
                $compteur = 0;
                fclose($fichierA);
@@ -59,6 +59,7 @@ function verifierSiTableauComplet($colonne,$ligne){
         }
     }
 }
+
 // --- rechercheDansFichierCelluleProprietes ---
 // Parcourt un fichier à la recherche des proprietes d'une cellule dans le fichier tableau.txt
 // Demande 1 String (= proprietes de la cellule qu'on veut trouver)

@@ -1,18 +1,14 @@
-<!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title></title>
-    </head>
-    <body>
-        <?php
-        $action = "genererTableau";
-        switch ($action){
-            case "genererTableau":
-                include("controleurs/c_generationTableau.php");
-                break;
-            
-        }
-        ?>
+<?php
+require_once ("include/fonctions.php");
+include("vues/v_entete.php") ;
+$action = "genererTableau";
+switch ($action){
+    case "genererTableau":
+        include("controleurs/c_actionTableau.php");
+        break;
+
+}
+include("vues/v_footer.php") ;
+?>
     </body>
 </html>

@@ -3,11 +3,10 @@
     Nb Ligne : <input type="text" name="ligne"><br>
     <input type="submit" value="Valider">
 </form>
+
 <?php
 foreach ($monTableau as $unElement){
-    $check = stripos($unElement,'t1_');
-    if ($check === false){ //Si ce n'est pas un code de cellule
-        echo $unElement;  
-    }
+    echo $unElement;  
 }
 ?>
+</form>
