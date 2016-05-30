@@ -1,11 +1,23 @@
 <?php
 include("include/fonctions.php");
-$monTableau = constructionTableau(2,3);
-foreach ($monTableau as $unElement){
-    $check = stripos($unElement,'c_');
-    if ($check === false){ //Si ce n'est pas un code de cellule
-        echo $unElement;  
+switch ($action){
+    case "genererTableau":
+        $colonne = $_REQUEST['colonne'];
+        $ligne = $_REQUEST['ligne'];
+        $monTableau = constructionTableau($colonne,$ligne);
+        break;
+    default :
+        echo "Rien, nada !";
+        
+}
+
+$celluleTableau = array();
+array_push($celluleTableau, 't1_a1');
+$tableauProprietes = connaitreTouteProprietes($celluleTableau); //Sert à connaitre les proprietes d'une cellule d'un tableau
+foreach ($tableauProprietes as $uneCellule){
+    foreach($uneCellule as $unePropriete){
+        echo $unePropriete."<br/>";
     }
 }
-echo connaitreTouteProprietes('/a0/');
+include ("vues/tableauGenerer.php");
 ?>
