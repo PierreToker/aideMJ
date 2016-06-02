@@ -9,8 +9,7 @@ function constructionTableau($colonne,$ligne){
     $lettre = 'a';
     $fichier = fopen("tableau.txt","r"); 
     verifierSiTableauComplet($colonne,$ligne);
-    //$tableau[0] = "<form method='POST' id='myForm' action='index.php?uc=genererTableau&action=voirDetailCellule'><div class='dropdown'><table border='1'>";
-    $tableau[0] = "<div class='dropdown'><table border='3'>";
+    $tableau[0] = "<div class='dropdown' style='position:relative'><table border='3'>";
     for($i=0;$i<$ligne;$i++){
         if($i != 0){
             $lettre++;
@@ -20,16 +19,36 @@ function constructionTableau($colonne,$ligne){
             $position = "t1_".$lettre.$x;
             $celluleTableau = array();
             array_push($celluleTableau, $position);
-           // $tableau[count($tableau)+1] = "<td id=\"leTD\" onclick=\"transfertCodeCellule('$position')\">Vaaaide</td>"; //code de la cellule
-            $tableau[count($tableau)+1] = "<td id=\"leTD\"><button class='dropbtn' id='menu1' type='button' data-toggle='dropdown'>Vide</button><ul class='dropdown-menu' role='menu' aria-labelledby='menu1'>
-                <li role='presentation'><a role='menuitem' tabindex='-1' href='#'>$position</a></li>
-                <li role='presentation' class='divider'></li>";
+            $tableau[count($tableau)+1] = "<td id=\"leTD\"><a href='#' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Click here</a><ul class='dropdown-menu'>
+                <li><a>$position</a></li>
+                <li class='dropdown-header'>Caractéristiques de la cellule</li>";
                 foreach (connaitreTouteProprietes($celluleTableau) as $unResultat){
                     foreach ($unResultat as $laPropriete){
-                        $tableau[count($tableau)+1] = "<li role='introduction'><a role='menuitem' tabindex='-1' href='#'>$laPropriete</a></li>";
+                        $pieces = explode("||", $laPropriete);
+                        $codePropriete = trim($pieces[0]); 
+                        if (!isset($codePropriete)){
+                            $codePropriete = "";
+                        }
+                        $textePropriete = trim($pieces[1]);
+                        $tableau[count($tableau)+1] = ""
+                            . "<li><a class='trigger right-caret'>$textePropriete</a>"
+                                . "<ul class='dropdown-menu sub-menu'>"
+                                    . "<li><a class='trigger right-caret'>Modifier attribut</a></li>"
+                                    . "<li><a href='#' class='btn btn-primary btn-lg active btn-sm' onclick=\"transfertSuppression('$codePropriete','$position')\">Supprimer attribut</a></li>"
+                                . "</ul>"
+                            . "</li>";
                     }
-                }  
-            $tableau[count($tableau)+1] = "</ul></td>"; //code de la cellule [TEST]
+                } //onclick du ajout bouton onclick=\"transfertAjout('$position')\"
+            $tableau[count($tableau)+1] = "<li><a href='#' role='button' class='trigger right-caret btn btn-primary btn-lg active btn-sm'>Ajouter un attribut</a>"
+                                . "<ul class='dropdown-menu sub-menu'><form action='index.php?uc=genererTableau&action=ajouterCellule' method='POST'>"
+                                    . "<li><a class='dropdown-header'>Titre de l'événement</a></li>"
+                                    . "<li><input type='text' class='form-control' name='titreEvenement'></li>"
+                                    . "<li><a class='dropdown-header'>Description de l'événement</a></li>"
+                                    . "<li><textarea rows='3' class='form-control' name='descriptionEvenement'></textarea></li>"
+                                    . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>"
+                                    . "<button class='btn btn-secondary-outline btn-sm' type='reset'>Tous effacer</button></li>"
+                                . "</form></ul>"
+                            . "</li></ul></td>"; 
         }
         $tableau[count($tableau)+1] = "</tr>";
     }
@@ -72,6 +91,34 @@ function verifierSiTableauComplet($colonne,$ligne){
     }
 }
 
+function getToutesLesProprietes(){
+    
+}
+
+function ajoutProprietesCellule(){
+    
+}
+
+// --- suppressionProprietesDansCellule ---
+// Parcourt le fichier (tableau.txt) à la recherche de la propriété à supprimer
+// Demande 1 String (= code du tableau + code de la propriété (concaténé au préalable))
+// Retourne un boolean résumant le résultat de la fonction
+function suppressionProprietesDansCellule($codeCellulePropriete){
+    $fichier = fopen("tableau.txt","r+");
+    if ($fichier){
+        while (($buffer = fgets($fichier, 4096)) !== false) {
+            if(strpos($buffer, $codeCellulePropriete) !== false) {
+                file_put_contents("tableau.txt", str_replace($buffer, "", file_get_contents("tableau.txt")));
+                return true;
+            }
+        }
+        if (!feof($fichier)) {
+            echo "Erreur: fgets() de suppression a échoué\n";
+        }
+    }
+    fclose($fichier);
+}
+
 // --- rechercheDansFichierCelluleProprietes ---
 // Parcourt un fichier à la recherche des proprietes d'une cellule dans le fichier tableau.txt
 // Demande 1 String (= proprietes de la cellule qu'on veut trouver)
@@ -105,7 +152,7 @@ function rechercheDansFichierProprietes($uneCellule){
     if ($fichier){
         while (($buffer = fgets($fichier, 4096)) !== false) {
             if ($check == true){
-                array_push($resultat, $buffer);
+                array_push($resultat, $uneCellule."||".$buffer);
                 $check = false;
             }else if ($uneCellule === $buffer){
                $check = true;
@@ -126,6 +173,7 @@ function rechercheDansFichierProprietes($uneCellule){
 function connaitreTouteProprietes($codeCellule){ 
     $lesProprietesDuTableau = array();
     $lesProprietes = array();
+    $lescodeProprietes = array();
     foreach($codeCellule as $uneCellule){ //On va connaitre les codeProprietes d'une cellule
         array_push($lesProprietesDuTableau, rechercheDansFichierCelluleProprietes($uneCellule)); 
     }
