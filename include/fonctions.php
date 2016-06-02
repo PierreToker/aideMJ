@@ -3,13 +3,14 @@
 // --- constructionTableau ---
 // Construit le tableau souhaité par l'utilisateur
 // Demande 2 Int (1= la longueur du tableau ET 1 = largeur du tableau)
-// Retourne un Array
+// Retourne un Array (le tableau à reconstuire avec 1 Foreach)
 function constructionTableau($colonne,$ligne){
     $tableau = array();
     $lettre = 'a';
     $fichier = fopen("tableau.txt","r"); 
     verifierSiTableauComplet($colonne,$ligne);
-    $tableau[0] = "<table border='1'>";
+    //$tableau[0] = "<form method='POST' id='myForm' action='index.php?uc=genererTableau&action=voirDetailCellule'><div class='dropdown'><table border='1'>";
+    $tableau[0] = "<div class='dropdown'><table border='3'>";
     for($i=0;$i<$ligne;$i++){
         if($i != 0){
             $lettre++;
@@ -17,11 +18,22 @@ function constructionTableau($colonne,$ligne){
         $tableau[count($tableau)+1] = "<tr>";
         for($x=0;$x<$colonne;$x++){
             $position = "t1_".$lettre.$x;
-            $tableau[count($tableau)+1] = "<td><a href='index.php?uc=generationTableau&action=voirDetailCellule' style='cursor:pointer;'><input type='hidden' name='cellule' value='$position'>Vide</td>"; //contenant de la cellule
+            $celluleTableau = array();
+            array_push($celluleTableau, $position);
+           // $tableau[count($tableau)+1] = "<td id=\"leTD\" onclick=\"transfertCodeCellule('$position')\">Vaaaide</td>"; //code de la cellule
+            $tableau[count($tableau)+1] = "<td id=\"leTD\"><button class='dropbtn' id='menu1' type='button' data-toggle='dropdown'>Vide</button><ul class='dropdown-menu' role='menu' aria-labelledby='menu1'>
+                <li role='presentation'><a role='menuitem' tabindex='-1' href='#'>$position</a></li>
+                <li role='presentation' class='divider'></li>";
+                foreach (connaitreTouteProprietes($celluleTableau) as $unResultat){
+                    foreach ($unResultat as $laPropriete){
+                        $tableau[count($tableau)+1] = "<li role='introduction'><a role='menuitem' tabindex='-1' href='#'>$laPropriete</a></li>";
+                    }
+                }  
+            $tableau[count($tableau)+1] = "</ul></td>"; //code de la cellule [TEST]
         }
         $tableau[count($tableau)+1] = "</tr>";
     }
-    $tableau[count($tableau)+1] = "</table>";
+    $tableau[count($tableau)+1] = "</table></form>";
     fclose($fichier);
     return $tableau;
 }
@@ -99,6 +111,9 @@ function rechercheDansFichierProprietes($uneCellule){
                $check = true;
             }
         }
+        if (!feof($fichier)) {
+            echo "Erreur: fgets() a échoué\n";
+        }
     }
     fclose($fichier); 
     return $resultat;
@@ -121,3 +136,4 @@ function connaitreTouteProprietes($codeCellule){
     }
     return $lesProprietes;
 }
+?>
