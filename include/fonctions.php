@@ -121,29 +121,56 @@ function getToutesLesProprietes(){
     return $lesProprietes;
 }
 
-function ajoutProprietesCellule($lenomEvenement){
+function ajoutProprietesCellule($lenomEvenement){ //BUG == $contenuApres saute des lignes au fur et à mesure que l'on refresh la page
     $pieces = explode("||", $lenomEvenement);
-    $lenomEvenement = substr($pieces[0],6);
-    $celluleTableau = $pieces[1];
-    echo $celluleTableau;
-    $i = 0; $positionCellule = 0;
+    $lenomEvenement = substr($pieces[0],6); $cellule = false;
+    $celluleTableau = $pieces[1]; $contenuAvant = array(); $contenuApres = array();
+    $combienCaracteres = 0; $i = 0; $positionCellule = 0;
     $fichier = fopen("tableau.txt","r+");
     if ($fichier){
         while (($buffer = fgets($fichier, 4096)) !== false) {
-            if(strpos($buffer, $celluleTableau) !== false) {
+            if (strpos($buffer, "-----") !== false && $cellule == false){
+                $cellule = true;
+            }
+            if(strpos($buffer, $celluleTableau) !== false && $cellule == false) {
+                $combienCaracteres = $combienCaracteres + strlen($buffer);
+                array_push($contenuAvant,$buffer."\n");
                 if ($positionCellule == 0){
                     $positionCellule = $i;
                 }
-                $cellule = true;
             }
-            if(strpos($buffer, "-------------------") !== false && $cellule == true) {
+            if($cellule == true) {
                 $delimiteur = $i;
-                break;
+                array_push($contenuApres,$buffer."\n");
             }
             $i++;
         }
-        echo "Cellulé trouvé à la position : ".$positionCellule." et délimiteur à la ligne : ".$delimiteur;
+        //ftruncate($fichier,0);
+        //fseek($fichier, 0);
+        foreach($contenuAvant as $unElement){
+            echo $unElement."<br/>";
+            //fputs($fichier,$unElement);
+        }
+        echo "ICI JE PLACE MON TRUC <br/>";
+        //fputs($fichier, $celluleTableau."_".$lenomEvenement."\n");
+        foreach($contenuApres as $unElement){
+            echo $unElement."<br/>";
+            //fputs($fichier,$unElement);
+        }
+        
+        
+        
+        fseek($fichier,$combienCaracteres-1);
+        array_push($contenuApres,"-----");
+
+        //ftruncate($fichier,0);
+//        fputs($fichier,$contenuAvant);
+//        fputs($fichier,"\n");
+//        fputs($fichier, $celluleTableau."_".$lenomEvenement."\n");
+//        fputs($fichier,$contenuApres);
+        
     }
+    fclose($fichier);
 }
 
 // --- suppressionProprietesDansCellule ---
