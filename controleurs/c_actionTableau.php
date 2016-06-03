@@ -10,10 +10,13 @@ switch ($action){
         $monTableau = constructionTableau($colonne,$ligne);
         include ("vues/tableauGenerer.php");
         break;
-    case "ajouterCellule":
+    case "creerEvenement":
         $titre = isset($_POST['titreEvenement']) ? $_POST['titreEvenement'] : NULL;
         $description = isset($_POST['descriptionEvenement']) ? $_POST['descriptionEvenement'] : NULL;
-        
+        break;
+    case "ajouterEvementCellule":
+        $nomEvenement = isset($_POST['titreEvenement']) ? $_POST['titreEvenement'] : NULL;
+        ajoutProprietesCellule($nomEvenement);
         break;
     case "supprimerCellule":
         $codePropriete = isset($_POST['codePropriete']) ? $_POST['codePropriete'] : NULL;
@@ -30,6 +33,5 @@ switch ($action){
         break;
     default :
         echo "<br/>Rien selectionné dans le controleur 'c_actionTableau' !<br/>";
-        
 }
 ?>

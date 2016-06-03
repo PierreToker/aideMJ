@@ -7,6 +7,7 @@
 function constructionTableau($colonne,$ligne){
     $tableau = array();
     $lettre = 'a';
+    $lesProprietes = getToutesLesProprietes();
     $fichier = fopen("tableau.txt","r"); 
     verifierSiTableauComplet($colonne,$ligne);
     $tableau[0] = "<div class='dropdown' style='position:relative'><table border='3'>";
@@ -30,8 +31,7 @@ function constructionTableau($colonne,$ligne){
                             $codePropriete = "";
                         }
                         $textePropriete = trim($pieces[1]);
-                        $tableau[count($tableau)+1] = ""
-                            . "<li><a class='trigger right-caret'>$textePropriete</a>"
+                        $tableau[count($tableau)+1] = "<li><a class='trigger right-caret'>$textePropriete</a>"
                                 . "<ul class='dropdown-menu sub-menu'>"
                                     . "<li><a class='trigger right-caret'>Modifier attribut</a></li>"
                                     . "<li><a href='#' class='btn btn-primary btn-lg active btn-sm' onclick=\"transfertSuppression('$codePropriete','$position')\">Supprimer attribut</a></li>"
@@ -39,14 +39,24 @@ function constructionTableau($colonne,$ligne){
                             . "</li>";
                     }
                 } //onclick du ajout bouton onclick=\"transfertAjout('$position')\"
-            $tableau[count($tableau)+1] = "<li><a href='#' role='button' class='trigger right-caret btn btn-primary btn-lg active btn-sm'>Ajouter un attribut</a>"
-                                . "<ul class='dropdown-menu sub-menu'><form action='index.php?uc=genererTableau&action=ajouterCellule' method='POST'>"
-                                    . "<li><a class='dropdown-header'>Titre de l'événement</a></li>"
-                                    . "<li><input type='text' class='form-control' name='titreEvenement'></li>"
-                                    . "<li><a class='dropdown-header'>Description de l'événement</a></li>"
-                                    . "<li><textarea rows='3' class='form-control' name='descriptionEvenement'></textarea></li>"
+            $tableau[count($tableau)+1] = "<li><a href='#' role='button' class='trigger right-caret btn btn-primary btn-lg active btn-sm'>Ajouter un événement</a>"
+                                . "<ul class='dropdown-menu sub-menu'><form action='index.php?uc=genererTableau&action=ajouterEvementCellule' method='POST'>"
+                                    . "<li><a class='dropdown-header'>Choisir l'événement à ajouter</a></li>"
+                                    . "<li><select name='titreEvenement'>";
+                                    foreach ($lesProprietes as $unePropriete){
+                                        switch(true){
+                                        case stristr($unePropriete,'lenom='):
+                                            $numeroPropriete = $unePropriete."||".$position;
+                                            break;
+                                        case stristr($unePropriete,'titre='):
+                                            $rest = substr($unePropriete,6);
+                                            $tableau[count($tableau)+1] =  "<option value='$numeroPropriete'>$rest</option>";
+                                            $numeroPropriete = "";
+                                            break;
+                                        }
+                                    }
+            $tableau[count($tableau)+1] = "</select></li><br/>"
                                     . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>"
-                                    . "<button class='btn btn-secondary-outline btn-sm' type='reset'>Tous effacer</button></li>"
                                 . "</form></ul>"
                             . "</li></ul></td>"; 
         }
@@ -56,6 +66,8 @@ function constructionTableau($colonne,$ligne){
     fclose($fichier);
     return $tableau;
 }
+
+
 
 function verifierSiTableauComplet($colonne,$ligne){
     $lettre = 'a';
@@ -91,12 +103,47 @@ function verifierSiTableauComplet($colonne,$ligne){
     }
 }
 
+// --- getToutesLesProprietes ---
+// Parcourt le fichier (proprietes.txt) à la recherche de toutes les propriétés
+// Retourne un Array contenant toutes les proprietes présents dans le fichier proprietes.txt
 function getToutesLesProprietes(){
-    
+    $lesProprietes = array();
+    $fichier = fopen("proprietes.txt","r");
+    if ($fichier){
+        while (($buffer = fgets($fichier, 4096)) !== false) {
+            array_push($lesProprietes, $buffer);
+            array_push($lesProprietes, "||");
+        }
+        if (!feof($fichier)) {
+            echo "Erreur: fgets() de getToutesLesProprietes a échoué\n";
+        }
+    }
+    return $lesProprietes;
 }
 
-function ajoutProprietesCellule(){
-    
+function ajoutProprietesCellule($lenomEvenement){
+    $pieces = explode("||", $lenomEvenement);
+    $lenomEvenement = substr($pieces[0],6);
+    $celluleTableau = $pieces[1];
+    echo $celluleTableau;
+    $i = 0; $positionCellule = 0;
+    $fichier = fopen("tableau.txt","r+");
+    if ($fichier){
+        while (($buffer = fgets($fichier, 4096)) !== false) {
+            if(strpos($buffer, $celluleTableau) !== false) {
+                if ($positionCellule == 0){
+                    $positionCellule = $i;
+                }
+                $cellule = true;
+            }
+            if(strpos($buffer, "-------------------") !== false && $cellule == true) {
+                $delimiteur = $i;
+                break;
+            }
+            $i++;
+        }
+        echo "Cellulé trouvé à la position : ".$positionCellule." et délimiteur à la ligne : ".$delimiteur;
+    }
 }
 
 // --- suppressionProprietesDansCellule ---

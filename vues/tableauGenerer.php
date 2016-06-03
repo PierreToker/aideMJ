@@ -66,3 +66,18 @@ foreach ($monTableau as $unElement){
     echo $unElement;  
 }
 ?>
+<form action='index.php?uc=genererTableau&action=creerEvenement' method='POST'>
+    <div class='dropdown' style='position:relative'>
+    <a href='#' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Click here</a>
+    <ul class='dropdown-menu'>Créer un événement
+        <li><a class='dropdown-header'>Titre de l'événement</a></li>
+        <li><input type='text' class='form-control' name='titreEvenement'></li>
+        <li><a class='dropdown-header'>Description de l'événement</a></li>
+        <li><textarea rows='3' class='form-control' name='descriptionEvenement'></textarea></li>
+        <li><a class='dropdown-header'>Nombre de tours</a></li>
+        <input type="range" name="nbTours" min="0" max="20">
+        <li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>
+        <button class='btn btn-secondary-outline btn-sm' type='reset'>Tous effacer</button>
+    </ul>
+    </div>
+</form>

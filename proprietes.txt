@@ -1,8 +1,12 @@
-p0
-Un test
-
-p1
-yolo mec !
-
-p2
-putain que ça fonctionne
+lenom=p0
+titre=Un test
+descr=Mon événement à moi
+-------------------
+lenom=p1
+titre=YOLO
+descr=yolo mec !
+-------------------
+lenom=p2
+titre=Event numero 3
+descr=putain que ça fonctionne
+-------------------
