@@ -121,69 +121,79 @@ function getToutesLesProprietes(){
     return $lesProprietes;
 }
 
-function ajoutProprietesCellule($lenomEvenement){ //BUG == $contenuApres saute des lignes au fur et à mesure que l'on refresh la page
+// --- ajoutProprietesCellule ---
+// Parcourt le fichier (tableau.txt) pour implémenter la nouvelle propriété, gére les doublons
+// Demande 1 Array contenant le nom de l'événement (ex: p0) et la celulle du tableau (ex: t1_a0)
+function ajoutProprietesCellule($lenomEvenement){
+    $contenuAvant = array(); $contenuApres = array();
+    $delimiteur = 0;
+    $resultat = false; $existeDeja = false;
     $pieces = explode("||", $lenomEvenement);
-    $lenomEvenement = substr($pieces[0],6); $cellule = false;
-    $celluleTableau = $pieces[1]; $contenuAvant = array(); $contenuApres = array();
-    $combienCaracteres = 0; $i = 0; $positionCellule = 0;
+    $lenomEvenement = substr($pieces[0],6); 
+    $celluleTableau = $pieces[1]; 
+    $celluleEtEvenement = $celluleTableau."_".$lenomEvenement;
     $fichier = fopen("tableau.txt","r+");
+    array_push($contenuApres,"\n");
     if ($fichier){
-        while (($buffer = fgets($fichier, 4096)) !== false) {
-            if (strpos($buffer, "-----") !== false && $cellule == false){
-                $cellule = true;
-            }
-            if(strpos($buffer, $celluleTableau) !== false && $cellule == false) {
-                $combienCaracteres = $combienCaracteres + strlen($buffer);
+        while (($buffer = fgets($fichier, 4096)) !== false) { //Recherche la cellule
+            if(strpos($buffer, $celluleTableau) !== true) {
+                $delimiteur += strlen($buffer);
                 array_push($contenuAvant,$buffer."\n");
-                if ($positionCellule == 0){
-                    $positionCellule = $i;
-                }
             }
-            if($cellule == true) {
-                $delimiteur = $i;
+            if(strpos($buffer, $celluleTableau) !== false){
+                break;
+            }
+        }
+        fseek($fichier, $delimiteur);
+        while (($buffer = fgets($fichier, 4096)) !== false) { //Va jusqu'au délimiteur (-----) en partant du nom de cellule
+            if(strpos($buffer, "-----") !== false) {
+                break;
+            }else{
+                if(strpos($buffer,$celluleEtEvenement) !== false){
+                    $existeDeja = true;
+                    break;
+                }
+                $delimiteur += strlen($buffer);
+                array_push($contenuAvant,$buffer."\n");
+            }
+        }
+        if ($existeDeja == false){
+            fseek($fichier, $delimiteur);
+            while (($buffer = fgets($fichier, 4096)) !== false) { //Prend tout le reste du fichier
                 array_push($contenuApres,$buffer."\n");
             }
-            $i++;
+            ftruncate($fichier,0);
+            fseek($fichier, 0);
+            foreach($contenuAvant as $unElement){
+                fputs($fichier,$unElement);
+            }
+            fputs($fichier, $celluleTableau."_".$lenomEvenement."\n");
+            foreach($contenuApres as $unElement){
+                fputs($fichier,$unElement);
+            }   
         }
-        //ftruncate($fichier,0);
-        //fseek($fichier, 0);
-        foreach($contenuAvant as $unElement){
-            echo $unElement."<br/>";
-            //fputs($fichier,$unElement);
-        }
-        echo "ICI JE PLACE MON TRUC <br/>";
-        //fputs($fichier, $celluleTableau."_".$lenomEvenement."\n");
-        foreach($contenuApres as $unElement){
-            echo $unElement."<br/>";
-            //fputs($fichier,$unElement);
-        }
-        
-        
-        
-        fseek($fichier,$combienCaracteres-1);
-        array_push($contenuApres,"-----");
-
-        //ftruncate($fichier,0);
-//        fputs($fichier,$contenuAvant);
-//        fputs($fichier,"\n");
-//        fputs($fichier, $celluleTableau."_".$lenomEvenement."\n");
-//        fputs($fichier,$contenuApres);
-        
     }
     fclose($fichier);
+    if ($existeDeja == false){
+        echo "<div class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Réussite !</strong><br/>Opération effectuée avec succès.</div>";
+        header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
+    }else{
+        echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Echec !</strong><br/>L'opération n'a pas aboutie car la cellule comporte déjà cet attribut.</div>";
+        header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
+    }
 }
 
 // --- suppressionProprietesDansCellule ---
 // Parcourt le fichier (tableau.txt) à la recherche de la propriété à supprimer
 // Demande 1 String (= code du tableau + code de la propriété (concaténé au préalable))
-// Retourne un boolean résumant le résultat de la fonction
 function suppressionProprietesDansCellule($codeCellulePropriete){
     $fichier = fopen("tableau.txt","r+");
+    $resultat = false;
     if ($fichier){
         while (($buffer = fgets($fichier, 4096)) !== false) {
             if(strpos($buffer, $codeCellulePropriete) !== false) {
                 file_put_contents("tableau.txt", str_replace($buffer, "", file_get_contents("tableau.txt")));
-                return true;
+                $resultat = true;
             }
         }
         if (!feof($fichier)) {
@@ -191,15 +201,21 @@ function suppressionProprietesDansCellule($codeCellulePropriete){
         }
     }
     fclose($fichier);
+    if ($resultat == true){
+        echo "<div class='alert alert-success'><strong><span class='glyphicon glyphicon-ok'></span> Réussite !</strong><br/>La propriété a été effacée de la cellule.</div>";
+    }else{
+        echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Avertissement !</strong><br/>La propriété n'a pas été effacée de la cellule ou la propriété n'existe pas.</div>";
+    }
+    header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
 }
 
 // --- rechercheDansFichierCelluleProprietes ---
 // Parcourt un fichier à la recherche des proprietes d'une cellule dans le fichier tableau.txt
 // Demande 1 String (= proprietes de la cellule qu'on veut trouver)
-// Retourne un Array
+// Retourne un Array contenant propriétés de la cellule voulue
 function rechercheDansFichierCelluleProprietes($uneCellule){ 
     $resultat = array();
-    $fichier = fopen("tableau.txt","r"); // On ouvre le fichier en lecture (lecture/ecriture = r+)  
+    $fichier = fopen("tableau.txt","r"); //(lecture/ecriture = r+)  
     if ($fichier){
         while (($buffer = fgets($fichier, 4096)) !== false) {
             if (preg_match("#".$uneCellule."#", $buffer)){
@@ -211,13 +227,13 @@ function rechercheDansFichierCelluleProprietes($uneCellule){
             echo "Erreur: fgets() a échoué\n";
         }
     }
-    fclose($fichier); // On ferme le fichier
+    fclose($fichier);
     return $resultat;
 }
 
 // --- rechercheDansFichierProprietes ---
 // Parcourt un fichier à la recherche des proprietes dans le fichier proprietes.txt
-// Demande 1 String (= le texte de la proprietes qu'on veut trouver)
+// Demande 1 String (= le code de la propriété)
 // Retourne un Array
 function rechercheDansFichierProprietes($uneCellule){ 
     $resultat = array();
@@ -226,14 +242,15 @@ function rechercheDansFichierProprietes($uneCellule){
     if ($fichier){
         while (($buffer = fgets($fichier, 4096)) !== false) {
             if ($check == true){
+                $buffer = substr($buffer, 6);
                 array_push($resultat, $uneCellule."||".$buffer);
                 $check = false;
-            }else if ($uneCellule === $buffer){
+            }else if ("lenom=".$uneCellule === $buffer){
                $check = true;
             }
         }
         if (!feof($fichier)) {
-            echo "Erreur: fgets() a échoué\n";
+            echo "Erreur: fgets() de rechercheDansFichierProprietes() a échoué\n";
         }
     }
     fclose($fichier); 

@@ -10,6 +10,9 @@ switch ($uc){
     case "genererTableau":
         include("controleurs/c_actionTableau.php");
         break;
+    case "actionSurEvenement":
+        include("controleurs/c_actionEvenement.php");
+        break;
     default:
         echo "Rien choisi dans l'index !";
 
