@@ -1,4 +1,33 @@
 <?php
+// --- actionFichier ---
+// Effectue l'action sur le fichier en gérant les erreurs
+// Demande 3 string (1 = l'action voulue sur le fichier, 1 = le chemin du fichier, 1 = le mode d'accès au fichier r+,r...)
+// Retourne un boolean, le résultat de l'opération. FALSE = erreur / TRUE = pas d'erreur
+//function actionFichier($action,$nomFichier,$modeAcces){
+//    switch ($action){
+//        case "ouvrir":
+//            if (!$fp = fopen($nomFichier,$modeAcces)) {
+//                echo "Echec de l'ouverture du fichier";
+//                return $resultat = false;
+//            } else {
+//                return $resultat = true;
+//            }
+//            break;
+//        case "fermer":
+//            if (!$fp = fclose($nomFichier)) {
+//                echo "Echec de fermeture du fichier";
+//                return $resultat = false;
+//            } else {
+//                return $resultat = true;
+//            }
+//            break;
+//    }
+//}
+
+
+function constructionNouveauTableau(){
+    
+}
 
 // --- constructionTableau ---
 // Construit le tableau souhaité par l'utilisateur
@@ -119,6 +148,36 @@ function getToutesLesProprietes(){
         }
     }
     return $lesProprietes;
+}
+
+// --- ajouterNouveauEvenement ---
+// Ajoute l'événement voulue par l'utilisateur sur le fichier (proprietes.txt), gére l'encodage UTF-8
+// Demande 3 String (1 = le titre de l'événement, 1 = la description de l'événement, 1 = le nombre de tour que dure l'événement)
+function ajouterNouveauEvenement($titreEvenement,$descriptionEvenement,$nbTours){
+    $fichier = fopen("proprietes.txt","r+");
+    $i = 0;
+    if ($fichier){
+        while (($buffer = fgets($fichier)) !== false) {
+            if(strpos($buffer, "lenom=") !== false){
+                ++$i;
+            }
+        }
+        if (!feof($fichier)) {
+            echo "Erreur: fgets() de suppression a échoué\n";
+            $resulatat = true;
+        }
+        fseek($fichier, 0, SEEK_END);
+        fputs($fichier,"\r\n");
+        fputs($fichier,'lenom=p'.$i."\r\ntitre=".$titreEvenement."\r\ndescr=".$descriptionEvenement."\r\n-------------------");
+        $resultat = false;
+    }
+    if ($resultat == false){
+        echo "<div class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Réussite !</strong><br/>Opération effectuée avec succès.</div>";
+        header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
+    }else{
+        echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Echec !</strong><br/>L'opération n'a pas aboutie car la cellule comporte déjà cet attribut.</div>";
+        header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
+    }
 }
 
 // --- ajoutProprietesCellule ---
@@ -274,5 +333,36 @@ function connaitreTouteProprietes($codeCellule){
         }
     }
     return $lesProprietes;
+}
+
+// --- combienDeTableau ---
+// Sert à connaitre tous les tableaux déjà créé par l'utilisateur
+// Retourne un Array (les noms des tableaux)
+function connaitreTableau($action,$leTableau){
+    $dirname = '../aideMJ/ressources';
+    $dir = opendir($dirname); 
+    switch ($action){
+        case "certains":
+            $aVerifier = $dirname."/".$leTableau.".txt";
+            $lesFichiers = false;
+            if(file_exists($aVerifier)){
+                $lesFichiers = true;
+            }
+            closedir($dir);
+            return $lesFichiers;
+            break;
+        case "tous":
+            $lesFichiers = array(); 
+            while($file = readdir($dir)) {
+                if($file != '.' && $file != '..' && !is_dir($dirname.$file) && strpos($file, ".txt")){
+                    array_push($lesFichiers,$file);
+                }
+            }
+            closedir($dir);
+            return $lesFichiers;
+            break;
+        default :
+            echo "le choix sur la fonction connaitreTableau() n'existe pas.";
+    }
 }
 ?>

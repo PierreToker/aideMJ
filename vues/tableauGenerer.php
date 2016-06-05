@@ -56,11 +56,6 @@ $(function(){
     });
 });  
 </script>
-<form method='POST' action='index.php?uc=genererTableau&action=genererTableau'>
-    Nb Colonne : <input type="text" name="colonne"><br>
-    Nb Ligne : <input type="text" name="ligne"><br>
-    <input type="submit" value="Valider">
-</form>
 <?php
 foreach ($monTableau as $unElement){
     echo $unElement;  
@@ -71,11 +66,11 @@ foreach ($monTableau as $unElement){
     <a href='#' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Créer un événement</a>
     <ul class='dropdown-menu'>Créer un événement
         <li><a class='dropdown-header'>Titre de l'événement</a></li>
-        <li><input type='text' class='form-control' name='titreEvenement'></li>
+        <li><input type='text' class='form-control' name='titreEvenement' required></li>
         <li><a class='dropdown-header'>Description de l'événement</a></li>
-        <li><textarea rows='3' class='form-control' name='descriptionEvenement'></textarea></li>
+        <li><textarea rows='3' class='form-control' name='descriptionEvenement' required></textarea></li>
         <li><a class='dropdown-header'>Nombre de tours</a></li>
-        <input type="number" name="nbTours" min="0" max="1000">
+        <input type="number" name="nbTours" min="0" max="1000" required>
         <li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>
         <button class='btn btn-secondary-outline btn-sm' type='reset'>Tous effacer</button>
     </ul>
