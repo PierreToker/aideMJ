@@ -32,9 +32,9 @@ function constructionNouveauTableau($colonne,$ligne,$nomTableau){
     }
     $tableau = array();
     $lettre = 'a';
-    $cheminTableau = "../aideMJ/ressources/Maps/$nomTableau/tableau_1.txt";
+    $cheminTableau = "../aideMJ/ressources/Maps/$nomTableau/tableau1.txt";
     $fichier = fopen($cheminTableau,"a+"); 
-    verifierSiTableauComplet($colonne,$ligne,$cheminTableau);
+    construireTableauFichier($colonne,$ligne,$cheminTableau);
     $lesProprietes = getToutesLesProprietes();
     $tableau[0] = "<div class='dropdown' style='position:relative'><table border='3'>";
     for($i=0;$i<$ligne;$i++){
@@ -80,12 +80,12 @@ function constructionNouveauTableau($colonne,$ligne,$nomTableau){
 // Construit le tableau souhaité par l'utilisateur
 // Demande 2 Int (1= la longueur du tableau ET 1 = largeur du tableau)
 // Retourne un Array (le tableau à reconstuire avec 1 Foreach)
-function constructionTableau($colonne,$ligne){
+function constructionTableau($colonne,$ligne,$nomTableau){
     $tableau = array();
     $lettre = 'a';
+   
     $lesProprietes = getToutesLesProprietes();
-    $fichier = fopen("tableau.txt","r"); 
-    verifierSiTableauComplet($colonne,$ligne);
+    $fichier = fopen($cheminTableau,"r"); 
     $tableau[0] = "<div class='dropdown' style='position:relative'><table border='3'>";
     for($i=0;$i<$ligne;$i++){
         if($i != 0){
@@ -143,6 +143,40 @@ function constructionTableau($colonne,$ligne){
     return $tableau;
 }
 
+function construireTableauFichier($colonne,$ligne,$cheminTableau){
+    $lettre = 'a';
+    $fichier = fopen($cheminTableau,"r+"); 
+    for($i=0;$i<$ligne;$i++){
+        if($i != 0){
+            $lettre++;
+        }
+        for($x=0;$x<$colonne;$x++){
+            $position = "t1_".$lettre.$x;
+            $fichierA = fopen($cheminTableau,"r"); 
+            if ($fichierA){
+               while (!feof($fichierA)) {
+                    $buffer = fgets($fichierA,4096);
+                    if ($buffer == ""){
+                        $buffer = "null";
+                    }
+                    $compteur = 0;
+                    if(strpos($buffer, $position) !== FALSE ){ // Si la cellule existe déjà
+                        $compteur++;
+                        break;
+                    }
+               }
+               if ($compteur == 0){ //Si la cellule n'existe pas, il faut la créer
+                    $position = $position."\r\n";
+                    fputs($fichier, $position);
+                    fputs($fichier,"\r");
+                    fputs($fichier, "----- \r\n");
+               }
+               $compteur = 0;
+               fclose($fichierA);
+            }
+        }
+    }
+}
 
 
 function verifierSiTableauComplet($colonne,$ligne,$cheminTableau){
@@ -394,6 +428,19 @@ function connaitreTableau($action,$nomTableau){
             $lesFichiers = false;
             if(file_exists($aVerifier)){
                 $lesFichiers = true;
+            }
+            closedir($dir);
+            return $lesFichiers;
+            break;
+        case "combienTableau":
+            closedir($dir);
+            $dirname = "../aideMJ/ressources/Maps/".$nomTableau."/";
+            $dir = opendir($dirname); 
+            $lesFichiers = array(); 
+            while($file = readdir($dir)) {
+                if($file != '.' && $file != '..' && !is_dir($dirname.$file)){
+                    array_push($lesFichiers,$file);
+                }
             }
             closedir($dir);
             return $lesFichiers;

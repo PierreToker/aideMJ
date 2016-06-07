@@ -8,10 +8,26 @@ switch ($action){
         echo "En travaux pour le moment";
         $nomTableau = isset($_REQUEST['nomTableau']) ? $_REQUEST['nomTableau'] : NULL;
         $nomTableau = str_replace(" ", "_", $nomTableau);
-        //$monTableau = constructionTableau($colonne,$ligne,$nomTableau);
-        //include ("vues/tableauGenerer.php");
+        $i = 0;
+        $alphabet = array ("a","b","c");
+        foreach (connaitreTableau("combienTableau", $nomTableau) as $unTableau){
+            ++$i;
+            echo "<br/>".$unTableau."<br/>";
+            echo "../aideMJ/ressources/Maps/$nomTableau/tableau".$i.".txt";
+            $fichier = fopen("../aideMJ/ressources/Maps/$nomTableau/tableau".$i.".txt","r");
+            if ($fichier){
+                while (($buffer = fgets($fichier)) !== false) { //On doit determiner le nombre de ligne et colonne pour chaque fichier tableau.txt
+                    if (strpos("t".$i, $buffer)){
+                        
+                    }
+                }
+            }
+            
+            //$monTableau.$i = constructionTableau($colonne,$ligne,$nomTableau);
+        }
+        include ("vues/tableauGenerer.php");
         break;
-    case "constructionTableau": //anciennement "générationTableau
+    case "constructionTableau": //anciennement "générationTableau"
         $colonne = isset($_REQUEST['colonne']) ? $_REQUEST['colonne'] : NULL; //Si variable $_REQUEST['colonne'] existe, alors $colonne = $_REQUEST['colonne'] sinon == NULL 
         $ligne = isset($_REQUEST['ligne']) ? $_REQUEST['ligne'] : NULL;
         $nomTableau = isset($_REQUEST['nomTableau']) ? $_REQUEST['nomTableau'] : NULL;
@@ -20,8 +36,7 @@ switch ($action){
             echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Erreur</strong><br/>Le tableau ne peut pas étre créé, ce nom est déjà attribué à un autre tableau.</div>";
             header('Refresh:2;url=index.php');
         }else{
-            echo "existe pas";
-            //$monTableau = constructionNouveauTableau($colonne,$ligne,$nomTableau);
+            $monTableau = constructionNouveauTableau($colonne,$ligne,$nomTableau);
             //include ("vues/tableauGenerer.php");
         }
         break;
