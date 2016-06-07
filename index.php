@@ -7,6 +7,7 @@ if(!isset($_REQUEST['uc'])){
 $uc = $_REQUEST['uc'];
 switch ($uc){
     case "accueil":
+        $resultat = connaitreTableau("tous","");
         include("vues/accueil.php");
         break;
     case "genererTableau":

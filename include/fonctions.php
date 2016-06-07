@@ -25,8 +25,55 @@
 //}
 
 
-function constructionNouveauTableau(){
-    
+function constructionNouveauTableau($colonne,$ligne,$nomTableau){
+    $chemin = '../aideMJ/ressources/Maps/'.$nomTableau;
+    if (!mkdir($chemin, 0777, true)) {
+        die('Echec lors de la création du dossier...');
+    }
+    $tableau = array();
+    $lettre = 'a';
+    $cheminTableau = "../aideMJ/ressources/Maps/$nomTableau/tableau_1.txt";
+    $fichier = fopen($cheminTableau,"a+"); 
+    verifierSiTableauComplet($colonne,$ligne,$cheminTableau);
+    $lesProprietes = getToutesLesProprietes();
+    $tableau[0] = "<div class='dropdown' style='position:relative'><table border='3'>";
+    for($i=0;$i<$ligne;$i++){
+        if($i != 0){
+            $lettre++;
+        }
+        $tableau[count($tableau)+1] = "<tr>";
+        for($x=0;$x<$colonne;$x++){
+            $position = "t1_".$lettre.$x;
+            $celluleTableau = array();
+            array_push($celluleTableau, $position);
+            $tableau[count($tableau)+1] = "<td id=\"leTD\"><a href='#' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Click here</a><ul class='dropdown-menu'>
+                <li><a>$position</a></li>";
+            $tableau[count($tableau)+1] = "<li><a href='#' role='button' class='trigger right-caret btn btn-primary btn-lg active btn-sm'>Ajouter un événement</a>"
+                                . "<ul class='dropdown-menu sub-menu'><form action='index.php?uc=genererTableau&action=ajouterEvementCellule' method='POST'>"
+                                    . "<li><a class='dropdown-header'>Choisir l'événement à ajouter</a></li>"
+                                    . "<li><select name='titreEvenement'>";
+                                    foreach ($lesProprietes as $unePropriete){
+                                        switch(true){
+                                        case stristr($unePropriete,'lenom='):
+                                            $numeroPropriete = $unePropriete."||".$position;
+                                            break;
+                                        case stristr($unePropriete,'titre='):
+                                            $rest = substr($unePropriete,6);
+                                            $tableau[count($tableau)+1] =  "<option value='$numeroPropriete'>$rest</option>";
+                                            $numeroPropriete = "";
+                                            break;
+                                        }
+                                    }
+            $tableau[count($tableau)+1] = "</select></li><br/>"
+                                    . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>"
+                                . "</form></ul>"
+                            . "</li></ul></td>"; 
+        }
+        $tableau[count($tableau)+1] = "</tr>";
+    }
+    $tableau[count($tableau)+1] = "</table></form>";
+    fclose($fichier);
+    return $tableau;
 }
 
 // --- constructionTableau ---
@@ -98,16 +145,16 @@ function constructionTableau($colonne,$ligne){
 
 
 
-function verifierSiTableauComplet($colonne,$ligne){
+function verifierSiTableauComplet($colonne,$ligne,$cheminTableau){
     $lettre = 'a';
-    $fichier = fopen("tableau.txt","r+"); 
+    $fichier = fopen($cheminTableau,"r+"); 
     for($i=0;$i<$ligne;$i++){
         if($i != 0){
             $lettre++;
         }
         for($x=0;$x<$colonne;$x++){
             $position = "t1_".$lettre.$x;
-            $fichierA = fopen("tableau.txt","r"); 
+            $fichierA = fopen($cheminTableau,"r"); 
             if ($fichierA){
                while (!feof($fichierA)) {
                     $buffer = fgets($fichierA,4096);
@@ -338,12 +385,12 @@ function connaitreTouteProprietes($codeCellule){
 // --- combienDeTableau ---
 // Sert à connaitre tous les tableaux déjà créé par l'utilisateur
 // Retourne un Array (les noms des tableaux)
-function connaitreTableau($action,$leTableau){
-    $dirname = '../aideMJ/ressources';
+function connaitreTableau($action,$nomTableau){
+    $dirname = '../aideMJ/ressources/Maps';
     $dir = opendir($dirname); 
     switch ($action){
         case "certains":
-            $aVerifier = $dirname."/".$leTableau.".txt";
+            $aVerifier = $dirname."/".$nomTableau;
             $lesFichiers = false;
             if(file_exists($aVerifier)){
                 $lesFichiers = true;
@@ -354,8 +401,8 @@ function connaitreTableau($action,$leTableau){
         case "tous":
             $lesFichiers = array(); 
             while($file = readdir($dir)) {
-                if($file != '.' && $file != '..' && !is_dir($dirname.$file) && strpos($file, ".txt")){
-                    array_push($lesFichiers,$file);
+                if($file != '.' && $file != '..' && !is_dir($dirname.$file)){
+                    array_push($lesFichiers,str_replace("_", " ", $file));
                 }
             }
             closedir($dir);
