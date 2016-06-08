@@ -1,4 +1,5 @@
 <?php
+session_start();
 require_once ("include/fonctions.php");
 include("vues/v_entete.php") ;
 if(!isset($_REQUEST['uc'])){

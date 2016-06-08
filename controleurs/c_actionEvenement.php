@@ -10,5 +10,8 @@ switch ($action){
         $nbTours = isset($_POST['nbTours']) ? $_POST['nbTours'] : NULL;
         ajouterNouveauEvenement($titre,$description,$nbTours);
         break;
+    case "supprimerEvenement":
+        echo "pas encore fait";
+        break;
 }
 

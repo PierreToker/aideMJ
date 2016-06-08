@@ -2,38 +2,46 @@
 // --- actionFichier ---
 // Effectue l'action sur le fichier en gérant les erreurs
 // Demande 3 string (1 = l'action voulue sur le fichier, 1 = le chemin du fichier, 1 = le mode d'accès au fichier r+,r...)
-// Retourne un boolean, le résultat de l'opération. FALSE = erreur / TRUE = pas d'erreur
-//function actionFichier($action,$nomFichier,$modeAcces){
-//    switch ($action){
-//        case "ouvrir":
-//            if (!$fp = fopen($nomFichier,$modeAcces)) {
-//                echo "Echec de l'ouverture du fichier";
-//                return $resultat = false;
-//            } else {
-//                return $resultat = true;
-//            }
-//            break;
-//        case "fermer":
-//            if (!$fp = fclose($nomFichier)) {
-//                echo "Echec de fermeture du fichier";
-//                return $resultat = false;
-//            } else {
-//                return $resultat = true;
-//            }
-//            break;
-//    }
-//}
+// Retourne la ressource fichier et, un message d'erreur si cas échéant 
+// r = Ouvre le fichier en lecture seule. Cela signifie que vous pourrez seulement lire le fichier.
+// r+ = Ouvre le fichier en lecture et écriture. Vous pourrez non seulement lire le fichier, mais aussi y écrire (on l'utilisera assez souvent en pratique).
+// a = Ouvre le fichier en écriture seule. Mais il y a un avantage : si le fichier n'existe pas, il est automatiquement créé.
+// a+ = Ouvre le fichier en lecture et écriture. Si le fichier & n'existe pas, il est créé automatiquement. Attention : le répertoire doit avoir un CHMOD à 777 dans ce cas ! À noter que si le fichier existe déjà, le texte sera rajouté à la fin.
+function actionFichier($action,$nomFichier,$modeAcces){
+    switch ($action){
+        case "ouvrir":
+            if (!$fp = fopen($nomFichier,$modeAcces)) {
+                echo "Echec de l'ouverture du fichier";
+                return $fp;
+            } else {
+                return $fp;
+            }
+            break;
+        case "fermer":
+            if (!$fp = fclose($nomFichier)) {
+                echo "Echec de fermeture du fichier";
+                return $fp;
+            } else {
+                return $fp;
+            }
+            break;
+    }
+}
 
 
+// --- constructionNouveauTableau ---
+// Construit le tableau souhaité par l'utilisateur quand la map n'existe pas
+// Demande 2 Int (1= la longueur du tableau ET 1 = largeur du tableau) et 1 String (1= le nom de la map)
+// Retourne un Array (le tableau à reconstuire avec 1 Foreach)
 function constructionNouveauTableau($colonne,$ligne,$nomTableau){
     $chemin = '../aideMJ/ressources/Maps/'.$nomTableau;
     if (!mkdir($chemin, 0777, true)) {
-        die('Echec lors de la création du dossier...');
+        die('Echec lors de la création du dossier.');
     }
     $tableau = array();
     $lettre = 'a';
-    $cheminTableau = "../aideMJ/ressources/Maps/$nomTableau/tableau1.txt";
-    $fichier = fopen($cheminTableau,"a+"); 
+    $fichier = actionFichier("ouvrir","../aideMJ/ressources/Maps/$nomTableau/tableau_1.txt","a+");
+    $cheminTableau = "../aideMJ/ressources/Maps/$nomTableau/";
     construireTableauFichier($colonne,$ligne,$cheminTableau);
     $lesProprietes = getToutesLesProprietes();
     $tableau[0] = "<div class='dropdown' style='position:relative'><table border='3'>";
@@ -72,7 +80,7 @@ function constructionNouveauTableau($colonne,$ligne,$nomTableau){
         $tableau[count($tableau)+1] = "</tr>";
     }
     $tableau[count($tableau)+1] = "</table></form>";
-    fclose($fichier);
+    actionFichier("fermer",$fichier,"");
     return $tableau;
 }
 
@@ -80,10 +88,9 @@ function constructionNouveauTableau($colonne,$ligne,$nomTableau){
 // Construit le tableau souhaité par l'utilisateur
 // Demande 2 Int (1= la longueur du tableau ET 1 = largeur du tableau)
 // Retourne un Array (le tableau à reconstuire avec 1 Foreach)
-function constructionTableau($colonne,$ligne,$nomTableau){
+function constructionTableau($colonne,$ligne,$cheminTableau){
     $tableau = array();
     $lettre = 'a';
-   
     $lesProprietes = getToutesLesProprietes();
     $fichier = fopen($cheminTableau,"r"); 
     $tableau[0] = "<div class='dropdown' style='position:relative'><table border='3'>";
@@ -99,7 +106,7 @@ function constructionTableau($colonne,$ligne,$nomTableau){
             $tableau[count($tableau)+1] = "<td id=\"leTD\"><a href='#' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Click here</a><ul class='dropdown-menu'>
                 <li><a>$position</a></li>
                 <li class='dropdown-header'>Caractéristiques de la cellule</li>";
-                foreach (connaitreTouteProprietes($celluleTableau) as $unResultat){
+                foreach (connaitreTouteProprietes($celluleTableau,$cheminTableau) as $unResultat){
                     foreach ($unResultat as $laPropriete){
                         $pieces = explode("||", $laPropriete);
                         $codePropriete = trim($pieces[0]); 
@@ -110,7 +117,7 @@ function constructionTableau($colonne,$ligne,$nomTableau){
                         $tableau[count($tableau)+1] = "<li><a class='trigger right-caret'>$textePropriete</a>"
                                 . "<ul class='dropdown-menu sub-menu'>"
                                     . "<li><a class='trigger right-caret'>Modifier attribut</a></li>"
-                                    . "<li><a href='#' class='btn btn-primary btn-lg active btn-sm' onclick=\"transfertSuppression('$codePropriete','$position')\">Supprimer attribut</a></li>"
+                                    . "<li><a href='#' class='btn btn-primary btn-lg active btn-sm' onclick=\"transfertSuppression('$codePropriete','$position','$cheminTableau')\">Supprimer attribut</a></li>"
                                 . "</ul>"
                             . "</li>";
                     }
@@ -133,7 +140,7 @@ function constructionTableau($colonne,$ligne,$nomTableau){
                                     }
             $tableau[count($tableau)+1] = "</select></li><br/>"
                                     . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>"
-                                . "</form></ul>"
+                                . "<input type='hidden' name='cheminTableau' value='$cheminTableau'></form></ul>"
                             . "</li></ul></td>"; 
         }
         $tableau[count($tableau)+1] = "</tr>";
@@ -143,9 +150,18 @@ function constructionTableau($colonne,$ligne,$nomTableau){
     return $tableau;
 }
 
+// --- construireTableauFichier ---
+// Constuit le tableau dans le fichier 
+// NOTE : ne gére que le premier tableau actuellement
 function construireTableauFichier($colonne,$ligne,$cheminTableau){
+    $fichierTours = fopen($cheminTableau."/compteurTours.txt","a+");
+    fputs($fichierTours, 0);
+    fclose($fichierTours);
     $lettre = 'a';
+    $cheminTableau = $cheminTableau."/tableau_1.txt";
     $fichier = fopen($cheminTableau,"r+"); 
+    fputs($fichier,$colonne."_".$ligne."\r\n");
+    fputs($fichier, "-----\r\n");
     for($i=0;$i<$ligne;$i++){
         if($i != 0){
             $lettre++;
@@ -169,7 +185,7 @@ function construireTableauFichier($colonne,$ligne,$cheminTableau){
                     $position = $position."\r\n";
                     fputs($fichier, $position);
                     fputs($fichier,"\r");
-                    fputs($fichier, "----- \r\n");
+                    fputs($fichier, "-----\r\n");
                }
                $compteur = 0;
                fclose($fichierA);
@@ -179,6 +195,7 @@ function construireTableauFichier($colonne,$ligne,$cheminTableau){
 }
 
 
+// utile encore ?
 function verifierSiTableauComplet($colonne,$ligne,$cheminTableau){
     $lettre = 'a';
     $fichier = fopen($cheminTableau,"r+"); 
@@ -218,7 +235,7 @@ function verifierSiTableauComplet($colonne,$ligne,$cheminTableau){
 // Retourne un Array contenant toutes les proprietes présents dans le fichier proprietes.txt
 function getToutesLesProprietes(){
     $lesProprietes = array();
-    $fichier = fopen("proprietes.txt","r");
+    $fichier = fopen("../aideMJ/ressources/Proprietes/proprietes.txt","r");
     if ($fichier){
         while (($buffer = fgets($fichier, 4096)) !== false) {
             array_push($lesProprietes, $buffer);
@@ -235,7 +252,7 @@ function getToutesLesProprietes(){
 // Ajoute l'événement voulue par l'utilisateur sur le fichier (proprietes.txt), gére l'encodage UTF-8
 // Demande 3 String (1 = le titre de l'événement, 1 = la description de l'événement, 1 = le nombre de tour que dure l'événement)
 function ajouterNouveauEvenement($titreEvenement,$descriptionEvenement,$nbTours){
-    $fichier = fopen("proprietes.txt","r+");
+    $fichier = fopen("../aideMJ/ressources/Proprietes/proprietes.txt","r+");
     $i = 0;
     if ($fichier){
         while (($buffer = fgets($fichier)) !== false) {
@@ -244,12 +261,12 @@ function ajouterNouveauEvenement($titreEvenement,$descriptionEvenement,$nbTours)
             }
         }
         if (!feof($fichier)) {
-            echo "Erreur: fgets() de suppression a échoué\n";
+            echo "Erreur: fgets() de ajouterNouveauEvenement() a échoué\n";
             $resulatat = true;
         }
         fseek($fichier, 0, SEEK_END);
         fputs($fichier,"\r\n");
-        fputs($fichier,'lenom=p'.$i."\r\ntitre=".$titreEvenement."\r\ndescr=".$descriptionEvenement."\r\n-------------------");
+        fputs($fichier,'lenom=p'.$i."\r\ntitre=".$titreEvenement."\r\ndescr=".$descriptionEvenement."\r\nnTour=".$nbTours."\r\n-------------------");
         $resultat = false;
     }
     if ($resultat == false){
@@ -263,8 +280,8 @@ function ajouterNouveauEvenement($titreEvenement,$descriptionEvenement,$nbTours)
 
 // --- ajoutProprietesCellule ---
 // Parcourt le fichier (tableau.txt) pour implémenter la nouvelle propriété, gére les doublons
-// Demande 1 Array contenant le nom de l'événement (ex: p0) et la celulle du tableau (ex: t1_a0)
-function ajoutProprietesCellule($lenomEvenement){
+// Demande 1 Array contenant le nom de l'événement (ex: p0) et la celulle du tableau (ex: t1_a0) et 1 String (le chemin du tableau)
+function ajoutProprietesCellule($lenomEvenement,$cheminTableau){
     $contenuAvant = array(); $contenuApres = array();
     $delimiteur = 0;
     $resultat = false; $existeDeja = false;
@@ -272,7 +289,7 @@ function ajoutProprietesCellule($lenomEvenement){
     $lenomEvenement = substr($pieces[0],6); 
     $celluleTableau = $pieces[1]; 
     $celluleEtEvenement = $celluleTableau."_".$lenomEvenement;
-    $fichier = fopen("tableau.txt","r+");
+    $fichier = fopen($cheminTableau,"r+");
     array_push($contenuApres,"\n");
     if ($fichier){
         while (($buffer = fgets($fichier, 4096)) !== false) { //Recherche la cellule
@@ -325,14 +342,14 @@ function ajoutProprietesCellule($lenomEvenement){
 
 // --- suppressionProprietesDansCellule ---
 // Parcourt le fichier (tableau.txt) à la recherche de la propriété à supprimer
-// Demande 1 String (= code du tableau + code de la propriété (concaténé au préalable))
-function suppressionProprietesDansCellule($codeCellulePropriete){
-    $fichier = fopen("tableau.txt","r+");
+// Demande 2 String (1 = code du tableau + code de la propriété (concaténé au préalable), 1 = le chemin du tableau voulu)
+function suppressionProprietesDansCellule($codeCellulePropriete,$cheminTableau){
+    $fichier = fopen($cheminTableau,"r+");
     $resultat = false;
     if ($fichier){
         while (($buffer = fgets($fichier, 4096)) !== false) {
             if(strpos($buffer, $codeCellulePropriete) !== false) {
-                file_put_contents("tableau.txt", str_replace($buffer, "", file_get_contents("tableau.txt")));
+                file_put_contents($cheminTableau, str_replace($buffer, "", file_get_contents($cheminTableau)));
                 $resultat = true;
             }
         }
@@ -353,9 +370,9 @@ function suppressionProprietesDansCellule($codeCellulePropriete){
 // Parcourt un fichier à la recherche des proprietes d'une cellule dans le fichier tableau.txt
 // Demande 1 String (= proprietes de la cellule qu'on veut trouver)
 // Retourne un Array contenant propriétés de la cellule voulue
-function rechercheDansFichierCelluleProprietes($uneCellule){ 
+function rechercheDansFichierCelluleProprietes($uneCellule,$cheminTableau){ 
     $resultat = array();
-    $fichier = fopen("tableau.txt","r"); //(lecture/ecriture = r+)  
+    $fichier = fopen($cheminTableau,"r"); //(lecture/ecriture = r+)  
     if ($fichier){
         while (($buffer = fgets($fichier, 4096)) !== false) {
             if (preg_match("#".$uneCellule."#", $buffer)){
@@ -364,7 +381,7 @@ function rechercheDansFichierCelluleProprietes($uneCellule){
             }
         }
         if (!feof($fichier)) {
-            echo "Erreur: fgets() a échoué\n";
+            echo "Erreur: fgets() de rechercheDansFichierCelluleProprietes() a échoué\n";
         }
     }
     fclose($fichier);
@@ -378,7 +395,7 @@ function rechercheDansFichierCelluleProprietes($uneCellule){
 function rechercheDansFichierProprietes($uneCellule){ 
     $resultat = array();
     $check = false;
-    $fichier = fopen("proprietes.txt","r");
+    $fichier = fopen("../aideMJ/ressources/Proprietes/proprietes.txt","r");
     if ($fichier){
         while (($buffer = fgets($fichier, 4096)) !== false) {
             if ($check == true){
@@ -401,12 +418,12 @@ function rechercheDansFichierProprietes($uneCellule){
 // Sert à connaitre les proprietes d'une cellule d'un tableau
 // Demande un Array
 // Retourne un Array dans un array (un tableau de cellule contenant les proprietes par cellule)
-function connaitreTouteProprietes($codeCellule){ 
+function connaitreTouteProprietes($codeCellule,$cheminTableau){ 
     $lesProprietesDuTableau = array();
     $lesProprietes = array();
     $lescodeProprietes = array();
     foreach($codeCellule as $uneCellule){ //On va connaitre les codeProprietes d'une cellule
-        array_push($lesProprietesDuTableau, rechercheDansFichierCelluleProprietes($uneCellule)); 
+        array_push($lesProprietesDuTableau, rechercheDansFichierCelluleProprietes($uneCellule,$cheminTableau)); 
     }
     foreach ($lesProprietesDuTableau as $uneCelluleTableau) { //On va connaitre les attributs d'une cellule grace à un codeProprietes
         foreach ($uneCelluleTableau as $uneProprietesTableau){  
@@ -438,7 +455,7 @@ function connaitreTableau($action,$nomTableau){
             $dir = opendir($dirname); 
             $lesFichiers = array(); 
             while($file = readdir($dir)) {
-                if($file != '.' && $file != '..' && !is_dir($dirname.$file)){
+                if($file != '.' && $file != '..' && !is_dir($dirname.$file) && stristr($file, "tableau_") == true){
                     array_push($lesFichiers,$file);
                 }
             }
@@ -457,6 +474,32 @@ function connaitreTableau($action,$nomTableau){
             break;
         default :
             echo "le choix sur la fonction connaitreTableau() n'existe pas.";
+    }
+}
+
+// --- determinerTour ---
+// Permet de connaitre le nombre de tours passés
+// Demande un String (1= le chemin ou se situe le fichier compteurTours.txt)
+function determinerTour($cheminTableau){
+    $fichier = fopen($cheminTableau,"r"); 
+    if ($fichier){
+        while (($buffer = fgets($fichier)) !== false) {
+            $nbTours = $buffer;
+            break;
+        }
+    }
+    fclose($fichier);
+    return $nbTours;
+}
+
+// --- incrementerTours ---
+// Permet d'incrémenter la valeur du tour pour un tableau (sa position dans le temps par rapport à une partie)
+// Demande un Int (1= le tours (non incrémenté)) et un String (1= le chemin ou se situe le fichier compteurTours.txt)
+function incrementerTours($nbTours,$chemin){
+    $fichier = fopen($chemin,"r+");
+    if ($fichier){
+        ftruncate($fichier, 0);
+        fputs($fichier,$nbTours + 1);
     }
 }
 ?>

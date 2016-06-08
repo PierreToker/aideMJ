@@ -3,10 +3,11 @@
   <head>
     <title>Outil d'aide aux maitre de jeux</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
-    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="styles/bootstrap.min.css" />
     <link href="./styles/styles.css" rel="stylesheet" type="text/css" />
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
-    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <script src="./include/jquery-1.12.4.min.js"></script>   	
+    <script type="text/javascript" src="include/fonctionsJS.js"></script>
+    <script src="./include/bootstrap.min.js"></script>
  <!--    <link rel="shortcut icon" type="image/x-icon" href="./images/favicon.ico" />-->
   </head>
   <body>

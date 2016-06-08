@@ -1,12 +1,20 @@
 lenom=p0
 titre=Un test
 descr=Mon événement à moi
+nTour=5
 -------------------
 lenom=p1
 titre=YOLO
 descr=yolo mec !
+nTour=0
 -------------------
 lenom=p2
 titre=Event numero 3
 descr=putain que ça fonctionne
+nTour=100
+-------------------
+lenom=p3
+titre=test
+descr=test
+nTour=5
 -------------------
