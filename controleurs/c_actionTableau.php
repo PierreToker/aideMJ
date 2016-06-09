@@ -7,8 +7,10 @@ switch ($action){
     case "genererTableau":
         $_SESSION['nomTableau'] = isset($_REQUEST['nomTableau']) ? $_REQUEST['nomTableau'] : $_SESSION['nomTableau'];
         $_SESSION['nomTableau'] = str_replace(" ", "_", $_SESSION['nomTableau']);
+        $_SESSION['nbTours'] = determinerTour("../aideMJ/ressources/Maps/".$_SESSION['nomTableau']."/compteurTours.txt");
         $i = 0;
         $monTableau = array(1 => "monTableau1", 2=> "monTableau2");
+        $lesEvenements = array();
         foreach (connaitreTableau("combienTableau", $_SESSION['nomTableau']) as $unTableau){
             ++$i;
             $cheminTableau = "../aideMJ/ressources/Maps/".$_SESSION['nomTableau']."/".$unTableau;
@@ -24,7 +26,7 @@ switch ($action){
             $monTableau[$i] = constructionTableau($colonne,$ligne,$cheminTableau);
             fclose($fichier);
         }
-        $_SESSION['nbTours'] = determinerTour("../aideMJ/ressources/Maps/".$_SESSION['nomTableau']."/compteurTours.txt");
+        $lesEvenements = determinerEvenementCeTour($_SESSION['nbTours'],$_SESSION['nomTableau']);
         include ("vues/tableauGenerer.php");
         break;
     case "constructionTableau": //anciennement "générationTableau"
@@ -45,7 +47,8 @@ switch ($action){
     case "ajouterEvementCellule":
         $nomEvenement = isset($_POST['titreEvenement']) ? $_POST['titreEvenement'] : NULL;
         $cheminTableau = isset($_POST['cheminTableau']) ? $_POST['cheminTableau'] : NULL;
-        ajoutProprietesCellule($nomEvenement,$cheminTableau);
+        $quand = isset($_POST['quand']) ? $_POST['quand'] : NULL;
+        ajoutProprietesCellule($nomEvenement,$cheminTableau,$quand);
         break;
     case "supprimerCellule":
         $codePropriete = isset($_POST['codePropriete']) ? $_POST['codePropriete'] : NULL;
@@ -55,9 +58,9 @@ switch ($action){
         suppressionProprietesDansCellule($codeASupprimer,$cheminTableau);
         break;
     case "tourSuivant":
-        $nbTours = isset($_POST['nbTours']) ? $_POST['nbTours'] : NULL;
-        $nomTableau = isset($_POST['nomTableau']) ? $_POST['nomTableau'] : NULL;
-        incrementerTours($nbTours,"../aideMJ/ressources/Maps/".$nomTableau."/compteurTours.txt");
+        $_SESSION['nbTours'] = isset($_POST['nbTours']) ? $_POST['nbTours'] : NULL;
+        $_SESSION['nomTableau'] = isset($_POST['nomTableau']) ? $_POST['nomTableau'] : NULL;
+        incrementerTours($_SESSION['nbTours'],"../aideMJ/ressources/Maps/".$_SESSION['nomTableau']."/compteurTours.txt");
         header('Refresh:0;url=index.php?uc=genererTableau&action=genererTableau');
         break;
     default :

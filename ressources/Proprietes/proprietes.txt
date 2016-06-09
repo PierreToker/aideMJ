@@ -18,3 +18,8 @@ titre=test
 descr=test
 nTour=5
 -------------------
+lenom=p4
+titre=Nuage mortel
+descr=Un nage de fumé qui détruit tout sur son passage
+nTour=8
+-------------------

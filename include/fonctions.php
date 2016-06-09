@@ -28,7 +28,6 @@ function actionFichier($action,$nomFichier,$modeAcces){
     }
 }
 
-
 // --- constructionNouveauTableau ---
 // Construit le tableau souhaité par l'utilisateur quand la map n'existe pas
 // Demande 2 Int (1= la longueur du tableau ET 1 = largeur du tableau) et 1 String (1= le nom de la map)
@@ -105,7 +104,7 @@ function constructionTableau($colonne,$ligne,$cheminTableau){
             array_push($celluleTableau, $position);
             $tableau[count($tableau)+1] = "<td id=\"leTD\"><a href='#' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Click here</a><ul class='dropdown-menu'>
                 <li><a>$position</a></li>
-                <li class='dropdown-header'>Caractéristiques de la cellule</li>";
+                <li class='dropdown-header'>Evenement affectant la cellule</li>";
                 foreach (connaitreTouteProprietes($celluleTableau,$cheminTableau) as $unResultat){
                     foreach ($unResultat as $laPropriete){
                         $pieces = explode("||", $laPropriete);
@@ -116,7 +115,20 @@ function constructionTableau($colonne,$ligne,$cheminTableau){
                         $textePropriete = trim($pieces[1]);
                         $tableau[count($tableau)+1] = "<li><a class='trigger right-caret'>$textePropriete</a>"
                                 . "<ul class='dropdown-menu sub-menu'>"
-                                    . "<li><a class='trigger right-caret'>Modifier attribut</a></li>"
+                                    . "<li><a class='trigger right-caret'>Modifier attribut</a>"
+                                        . "<ul class='dropdown-menu sub-menu'><li>Caractéristiques de l'événement</li><li>";
+                                            $detailEvenement = chercherUnePropriete($codePropriete,"tous");
+                                            $demarreQuand = determinerDemarreQuand($position."_".$codePropriete,$cheminTableau);
+                                            $lesDetails = explode("||", $detailEvenement);
+                                            $tableau[count($tableau)+1] = "<li class='dropdown-header'>Titre de l'événement</li>"
+                                                . "<li>$lesDetails[0]</li>"
+                                                . "<li class='dropdown-header'>Description de l'événement</li>"
+                                                . "<li>$lesDetails[1]</li>"
+                                                . "<li class='dropdown-header'>Nombre de tours que dure l'événement</li>"
+                                                . "<li>$lesDetails[2]</li>"
+                                                . "<li class='dropdown-header'>Quand démarre l'événement ? </li>"
+                                                . "<li>Tour numéro : $demarreQuand</li>"
+                                        . "</ul></li>"
                                     . "<li><a href='#' class='btn btn-primary btn-lg active btn-sm' onclick=\"transfertSuppression('$codePropriete','$position','$cheminTableau')\">Supprimer attribut</a></li>"
                                 . "</ul>"
                             . "</li>";
@@ -139,6 +151,8 @@ function constructionTableau($colonne,$ligne,$cheminTableau){
                                         }
                                     }
             $tableau[count($tableau)+1] = "</select></li><br/>"
+                                    . "<li><a class='dropdown-header'>A quelle tour commencera l'événément</a></li>"
+                                    . "<li><input type='number'number' name='quand' min=".$_SESSION['nbTours']." max='1000' required></li>"
                                     . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>"
                                 . "<input type='hidden' name='cheminTableau' value='$cheminTableau'></form></ul>"
                             . "</li></ul></td>"; 
@@ -163,18 +177,16 @@ function construireTableauFichier($colonne,$ligne,$cheminTableau){
     fputs($fichier,$colonne."_".$ligne."\r\n");
     fputs($fichier, "-----\r\n");
     for($i=0;$i<$ligne;$i++){
-        if($i != 0){
+        if($i != 0)
             $lettre++;
-        }
         for($x=0;$x<$colonne;$x++){
             $position = "t1_".$lettre.$x;
             $fichierA = fopen($cheminTableau,"r"); 
             if ($fichierA){
                while (!feof($fichierA)) {
                     $buffer = fgets($fichierA,4096);
-                    if ($buffer == ""){
+                    if ($buffer == "")
                         $buffer = "null";
-                    }
                     $compteur = 0;
                     if(strpos($buffer, $position) !== FALSE ){ // Si la cellule existe déjà
                         $compteur++;
@@ -192,101 +204,20 @@ function construireTableauFichier($colonne,$ligne,$cheminTableau){
             }
         }
     }
-}
-
-
-// utile encore ?
-function verifierSiTableauComplet($colonne,$ligne,$cheminTableau){
-    $lettre = 'a';
-    $fichier = fopen($cheminTableau,"r+"); 
-    for($i=0;$i<$ligne;$i++){
-        if($i != 0){
-            $lettre++;
-        }
-        for($x=0;$x<$colonne;$x++){
-            $position = "t1_".$lettre.$x;
-            $fichierA = fopen($cheminTableau,"r"); 
-            if ($fichierA){
-               while (!feof($fichierA)) {
-                    $buffer = fgets($fichierA,4096);
-                    if ($buffer == ""){
-                        $buffer = "null";
-                    }
-                    $compteur = 0;
-                    if(strpos($buffer, $position) !== FALSE ){ // Si la cellule existe déjà
-                        $compteur++;
-                        break;
-                    }
-               }
-               if ($compteur == 0){ //Si la cellule n'existe pas, il faut la créer
-                    $position = $position."\r\n";
-                    fputs($fichier, $position);
-                    fputs($fichier,"\r\n");
-               }
-               $compteur = 0;
-               fclose($fichierA);
-            }
-        }
-    }
-}
-
-// --- getToutesLesProprietes ---
-// Parcourt le fichier (proprietes.txt) à la recherche de toutes les propriétés
-// Retourne un Array contenant toutes les proprietes présents dans le fichier proprietes.txt
-function getToutesLesProprietes(){
-    $lesProprietes = array();
-    $fichier = fopen("../aideMJ/ressources/Proprietes/proprietes.txt","r");
-    if ($fichier){
-        while (($buffer = fgets($fichier, 4096)) !== false) {
-            array_push($lesProprietes, $buffer);
-            array_push($lesProprietes, "||");
-        }
-        if (!feof($fichier)) {
-            echo "Erreur: fgets() de getToutesLesProprietes a échoué\n";
-        }
-    }
-    return $lesProprietes;
-}
-
-// --- ajouterNouveauEvenement ---
-// Ajoute l'événement voulue par l'utilisateur sur le fichier (proprietes.txt), gére l'encodage UTF-8
-// Demande 3 String (1 = le titre de l'événement, 1 = la description de l'événement, 1 = le nombre de tour que dure l'événement)
-function ajouterNouveauEvenement($titreEvenement,$descriptionEvenement,$nbTours){
-    $fichier = fopen("../aideMJ/ressources/Proprietes/proprietes.txt","r+");
-    $i = 0;
-    if ($fichier){
-        while (($buffer = fgets($fichier)) !== false) {
-            if(strpos($buffer, "lenom=") !== false){
-                ++$i;
-            }
-        }
-        if (!feof($fichier)) {
-            echo "Erreur: fgets() de ajouterNouveauEvenement() a échoué\n";
-            $resulatat = true;
-        }
-        fseek($fichier, 0, SEEK_END);
-        fputs($fichier,"\r\n");
-        fputs($fichier,'lenom=p'.$i."\r\ntitre=".$titreEvenement."\r\ndescr=".$descriptionEvenement."\r\nnTour=".$nbTours."\r\n-------------------");
-        $resultat = false;
-    }
-    if ($resultat == false){
-        echo "<div class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Réussite !</strong><br/>Opération effectuée avec succès.</div>";
-        header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
-    }else{
-        echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Echec !</strong><br/>L'opération n'a pas aboutie car la cellule comporte déjà cet attribut.</div>";
-        header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
-    }
+    fclose($fichier);
 }
 
 // --- ajoutProprietesCellule ---
 // Parcourt le fichier (tableau.txt) pour implémenter la nouvelle propriété, gére les doublons
 // Demande 1 Array contenant le nom de l'événement (ex: p0) et la celulle du tableau (ex: t1_a0) et 1 String (le chemin du tableau)
-function ajoutProprietesCellule($lenomEvenement,$cheminTableau){
+function ajoutProprietesCellule($lenomEvenement,$cheminTableau,$quand){
     $contenuAvant = array(); $contenuApres = array();
     $delimiteur = 0;
     $resultat = false; $existeDeja = false;
     $pieces = explode("||", $lenomEvenement);
     $lenomEvenement = substr($pieces[0],6); 
+    $lenomEvenement = substr($lenomEvenement,0,-2);
+    $nbTours = chercherUnePropriete($lenomEvenement,"sonTemps");
     $celluleTableau = $pieces[1]; 
     $celluleEtEvenement = $celluleTableau."_".$lenomEvenement;
     $fichier = fopen($cheminTableau,"r+");
@@ -297,9 +228,8 @@ function ajoutProprietesCellule($lenomEvenement,$cheminTableau){
                 $delimiteur += strlen($buffer);
                 array_push($contenuAvant,$buffer."\n");
             }
-            if(strpos($buffer, $celluleTableau) !== false){
+            if(strpos($buffer, $celluleTableau) !== false)
                 break;
-            }
         }
         fseek($fichier, $delimiteur);
         while (($buffer = fgets($fichier, 4096)) !== false) { //Va jusqu'au délimiteur (-----) en partant du nom de cellule
@@ -324,7 +254,7 @@ function ajoutProprietesCellule($lenomEvenement,$cheminTableau){
             foreach($contenuAvant as $unElement){
                 fputs($fichier,$unElement);
             }
-            fputs($fichier, $celluleTableau."_".$lenomEvenement."\n");
+            fputs($fichier, $celluleTableau."_".$lenomEvenement."_".$quand."_".$nbTours."\n");
             foreach($contenuApres as $unElement){
                 fputs($fichier,$unElement);
             }   
@@ -353,9 +283,8 @@ function suppressionProprietesDansCellule($codeCellulePropriete,$cheminTableau){
                 $resultat = true;
             }
         }
-        if (!feof($fichier)) {
+        if (!feof($fichier))
             echo "Erreur: fgets() de suppression a échoué\n";
-        }
     }
     fclose($fichier);
     if ($resultat == true){
@@ -377,40 +306,14 @@ function rechercheDansFichierCelluleProprietes($uneCellule,$cheminTableau){
         while (($buffer = fgets($fichier, 4096)) !== false) {
             if (preg_match("#".$uneCellule."#", $buffer)){
                 $rest = substr($buffer,6);
+                $rest = mb_strimwidth($rest, 0, 2); //supprime le start event et la durée de l'event
                 array_push($resultat, $rest);
             }
         }
-        if (!feof($fichier)) {
+        if (!feof($fichier))
             echo "Erreur: fgets() de rechercheDansFichierCelluleProprietes() a échoué\n";
-        }
     }
     fclose($fichier);
-    return $resultat;
-}
-
-// --- rechercheDansFichierProprietes ---
-// Parcourt un fichier à la recherche des proprietes dans le fichier proprietes.txt
-// Demande 1 String (= le code de la propriété)
-// Retourne un Array
-function rechercheDansFichierProprietes($uneCellule){ 
-    $resultat = array();
-    $check = false;
-    $fichier = fopen("../aideMJ/ressources/Proprietes/proprietes.txt","r");
-    if ($fichier){
-        while (($buffer = fgets($fichier, 4096)) !== false) {
-            if ($check == true){
-                $buffer = substr($buffer, 6);
-                array_push($resultat, $uneCellule."||".$buffer);
-                $check = false;
-            }else if ("lenom=".$uneCellule === $buffer){
-               $check = true;
-            }
-        }
-        if (!feof($fichier)) {
-            echo "Erreur: fgets() de rechercheDansFichierProprietes() a échoué\n";
-        }
-    }
-    fclose($fichier); 
     return $resultat;
 }
 
@@ -455,9 +358,8 @@ function connaitreTableau($action,$nomTableau){
             $dir = opendir($dirname); 
             $lesFichiers = array(); 
             while($file = readdir($dir)) {
-                if($file != '.' && $file != '..' && !is_dir($dirname.$file) && stristr($file, "tableau_") == true){
+                if($file != '.' && $file != '..' && !is_dir($dirname.$file) && stristr($file, "tableau_") == true)
                     array_push($lesFichiers,$file);
-                }
             }
             closedir($dir);
             return $lesFichiers;
@@ -465,9 +367,8 @@ function connaitreTableau($action,$nomTableau){
         case "tous":
             $lesFichiers = array(); 
             while($file = readdir($dir)) {
-                if($file != '.' && $file != '..' && !is_dir($dirname.$file)){
+                if($file != '.' && $file != '..' && !is_dir($dirname.$file))
                     array_push($lesFichiers,str_replace("_", " ", $file));
-                }
             }
             closedir($dir);
             return $lesFichiers;
@@ -475,6 +376,29 @@ function connaitreTableau($action,$nomTableau){
         default :
             echo "le choix sur la fonction connaitreTableau() n'existe pas.";
     }
+}
+
+// --- determinerDemarreQuand ---
+// Permet de connaitre la date de départ d'un événement 
+// Demande un String (1= le code de la cellule du tableau) et une Ressource (le chemin ou se situe le fichier compteurTours.txt))
+// Retourne un String (1= la date de commencement de l'événement)
+function determinerDemarreQuand($codeCellule,$cheminTableau){
+    $check = false;
+    $fichier = fopen($cheminTableau,"r"); //(lecture/ecriture = r+)  
+    if ($fichier){
+        while (($buffer = fgets($fichier, 4096)) !== false) {
+            if (strpos($buffer, $codeCellule) !== false){
+                $rest = substr($buffer,9);
+                $demarreQuand = explode("_", $rest);
+                $resultat = $demarreQuand[0];
+            }
+        }
+        if (!feof($fichier)) {
+            echo "Erreur: fgets() de rechercheDansFichierCelluleProprietes() a échoué\n";
+        }
+    }
+    fclose($fichier);
+    return $resultat;
 }
 
 // --- determinerTour ---
@@ -500,6 +424,19 @@ function incrementerTours($nbTours,$chemin){
     if ($fichier){
         ftruncate($fichier, 0);
         fputs($fichier,$nbTours + 1);
+    }
+}
+
+function determinerEvenementCeTour($nbTours,$nomTableau){
+    foreach (connaitreTableau("combienTableau", $nomTableau) as $unTableau){
+        $cheminTableau = "../aideMJ/ressources/Maps/".$nomTableau."/".$unTableau;
+        $fichier = fopen($cheminTableau,"r"); 
+        if ($fichier){
+            while (($buffer = fgets($fichier)) !== false) {
+                
+            }
+        }
+        fclose($fichier);
     }
 }
 ?>

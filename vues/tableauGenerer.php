@@ -17,7 +17,7 @@ foreach ($monTableau as $unTableau){
         <li><a class='dropdown-header'>Description de l'événement</a></li>
         <li><textarea rows='3' class='form-control' name='descriptionEvenement' required></textarea></li>
         <li><a class='dropdown-header'>Nombre de tours que dure l'événement</a></li>
-        <input type="number" name="nbTours" min="0" max="1000" required>
+        <li><input type="number" name="nbTours" min="0" max="1000" required></li>
         <li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>
         <button class='btn btn-secondary-outline btn-sm' type='reset'>Tous effacer</button>
     </ul>

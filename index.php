@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once ("include/fonctions.php");
+require_once ("include/fonctionsProprietes.php");
 include("vues/v_entete.php") ;
 if(!isset($_REQUEST['uc'])){
     $_REQUEST['uc'] = 'accueil';
