@@ -1,25 +1,15 @@
-lenom=p0
-titre=Un test
-descr=Mon �v�nement � moi
+﻿lenom=p0
+titre=Nuage de cendres
+descr=Les cendres brûlantes font fondre vos équipements. Perdez 1 CA pendant la durée de l'événement.
 nTour=5
 -------------------
 lenom=p1
-titre=YOLO
-descr=yolo mec !
+titre=Gobelin furtif
+descr=Un malin petit gobelin vous a volé des équipements ! Vous perdez 2 armes équipés.
 nTour=0
 -------------------
 lenom=p2
-titre=Event numero 3
-descr=putain que �a fonctionne
+titre=Cache secréte
+descr=Vous decouvrez un coffre remplit d'équipements. Vous gagnez 2 potions de vies.
 nTour=100
--------------------
-lenom=p3
-titre=test
-descr=test
-nTour=5
--------------------
-lenom=p4
-titre=Nuage mortel
-descr=Un nage de fum� qui d�truit tout sur son passage
-nTour=8
 -------------------

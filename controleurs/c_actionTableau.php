@@ -63,7 +63,15 @@ switch ($action){
         incrementerTours($_SESSION['nbTours'],"../aideMJ/ressources/Maps/".$_SESSION['nomTableau']."/compteurTours.txt");
         header('Refresh:0;url=index.php?uc=genererTableau&action=genererTableau');
         break;
+    case "modifierEvementCellule":
+        $cheminTableau = isset($_POST['cheminTableau']) ? $_POST['cheminTableau'] : NULL;
+        $dureeEvenement = isset($_POST['dureeEvenement']) ? $_POST['dureeEvenement'] : NULL;
+        $demarreQuand = isset($_POST['demarreQuand']) ? $_POST['demarreQuand'] : NULL;
+        $codeCelluleEtPropriete = isset($_POST['codeCelluleEtPropriete']) ? $_POST['codeCelluleEtPropriete'] : NULL;
+        modifierEvementCellule($cheminTableau,$demarreQuand,$dureeEvenement,$codeCelluleEtPropriete);
+        echo "<div class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Réussite !</strong><br/>L'événement a été mis à jours.</div>";
+        header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
+        break;
     default :
-        echo "<br/>Rien selectionné dans le controleur 'c_actionTableau' !<br/>";
+        echo "<br/>Rien selectionné dans le controleur 'c_actionTableau' !<br/>"; 
 }
-?>
