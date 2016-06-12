@@ -2,14 +2,14 @@
 titre=Nuage de cendres
 descr=Les cendres brûlantes font fondre vos équipements. Perdez 1 CA pendant la durée de l'événement.
 nTour=5
--------------------
+-----
 lenom=p1
 titre=Gobelin furtif
 descr=Un malin petit gobelin vous a volé des équipements ! Vous perdez 2 armes équipés.
 nTour=0
--------------------
+-----
 lenom=p2
 titre=Cache secréte
 descr=Vous decouvrez un coffre remplit d'équipements. Vous gagnez 2 potions de vies.
 nTour=100
--------------------
+-----

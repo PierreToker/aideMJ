@@ -29,68 +29,31 @@ function actionFichier($action,$nomFichier,$modeAcces){
 }
 
 // --- constructionNouveauTableau ---
-// Construit le tableau souhaité par l'utilisateur quand la map n'existe pas
+// Construit le tableau souhaité par l'utilisateur dans un fichier txt quand la map n'existe pas
 // Demande 2 Int (1= la longueur du tableau ET 1 = largeur du tableau) et 1 String (1= le nom de la map)
-// Retourne un Array (le tableau à reconstuire avec 1 Foreach)
-function constructionNouveauTableau($colonne,$ligne,$nomTableau){
+function constructionNouveauTableau($colonne,$ligne,$nomTableau,$numeroPlateau,$sensPlateau){
     $chemin = '../aideMJ/ressources/Maps/'.$nomTableau;
-    if (!mkdir($chemin, 0777, true))
-        die('Echec lors de la création du dossier.');
-    $tableau = array();
-    $lettre = 'a';
-    $fichier = actionFichier("ouvrir","../aideMJ/ressources/Maps/$nomTableau/tableau_1.txt","a+");
-    $cheminTableau = "../aideMJ/ressources/Maps/$nomTableau/";
-    construireTableauFichier($colonne,$ligne,$cheminTableau);
-    $lesProprietes = getToutesLesProprietes();
-    $tableau[0] = "<div class='dropdown' style='position:relative'><table border='3'>";
-    for($i=0;$i<$ligne;$i++){
-        if($i != 0)
-            $lettre++;
-        $tableau[count($tableau)+1] = "<tr>";
-        for($x=0;$x<$colonne;$x++){
-            $position = "t1_".$lettre.$x;
-            $celluleTableau = array();
-            array_push($celluleTableau, $position);
-            $tableau[count($tableau)+1] = "<td id=\"leTD\"><a href='#' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Click here</a><ul class='dropdown-menu'>
-                <li><a>$position</a></li>";
-            $tableau[count($tableau)+1] = "<li><a href='#' role='button' class='trigger right-caret btn btn-primary btn-lg active btn-sm'>Ajouter un événement</a>"
-                                . "<ul class='dropdown-menu sub-menu'><form action='index.php?uc=genererTableau&action=ajouterEvementCellule' method='POST'>"
-                                    . "<li><a class='dropdown-header'>Choisir l'événement à ajouter</a></li>"
-                                    . "<li><select name='titreEvenement'>";
-                                    foreach ($lesProprietes as $unePropriete){
-                                        switch(true){
-                                        case stristr($unePropriete,'lenom='):
-                                            $numeroPropriete = $unePropriete."||".$position;
-                                            break;
-                                        case stristr($unePropriete,'titre='):
-                                            $rest = substr($unePropriete,6);
-                                            $tableau[count($tableau)+1] =  "<option value='$numeroPropriete'>$rest</option>";
-                                            $numeroPropriete = "";
-                                            break;
-                                        }
-                                    }
-            $tableau[count($tableau)+1] = "</select></li><br/>"
-                                    . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>"
-                                . "</form></ul>"
-                            . "</li></ul></td>"; 
-        }
-        $tableau[count($tableau)+1] = "</tr>";
+    try{
+        if (!mkdir($chemin, 0777, true))
+            die('Echec lors de la création du dossier.');
+        $fichier = actionFichier("ouvrir","../aideMJ/ressources/Maps/$nomTableau/tableau_1.txt","a+");
+        $cheminTableau = "../aideMJ/ressources/Maps/$nomTableau/";
+        construireTableauFichier($colonne,$ligne,$cheminTableau,$numeroPlateau,$sensPlateau);
+    }catch(Exception $e){
+        print_r($e);
     }
-    $tableau[count($tableau)+1] = "</table></form>";
-    actionFichier("fermer",$fichier,"");
-    return $tableau;
 }
 
 // --- constructionTableau ---
 // Construit le tableau souhaité par l'utilisateur
 // Demande 2 Int (1= la longueur du tableau ET 1 = largeur du tableau)
 // Retourne un Array (le tableau à reconstuire avec 1 Foreach)
-function constructionTableau($colonne,$ligne,$cheminTableau){
+function constructionTableau($colonne,$ligne,$imageFond,$cheminTableau,$sensPlateau){
     $tableau = array();
     $lettre = 'a';
     $lesProprietes = getToutesLesProprietes();
     $fichier = fopen($cheminTableau,"r"); 
-    $tableau[0] = "<div class='dropdown' style='position:relative'><table border='3'>";
+    $tableau[0] = "<div class='dropdown' style='position:relative'><table border='3' class='rotation_$sensPlateau'>";
     for($i=0;$i<$ligne;$i++){
         if($i != 0)
             ++$lettre;
@@ -99,7 +62,7 @@ function constructionTableau($colonne,$ligne,$cheminTableau){
             $position = "t1_".$lettre.$x;
             $celluleTableau = array();
             array_push($celluleTableau, $position);
-            $tableau[count($tableau)+1] = "<td id=\"leTD\"><a href='#' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Click here</a><ul class='dropdown-menu'>
+            $tableau[count($tableau)+1] = "<td id=\"leTD\"><a href='#' data-toggle='dropdown'><img src='../aideMJ/ressources/Images/$imageFond/$imageFond"."$lettre"."$x.jpg' height='70' width='70' onerror=\"this.src='../aideMJ/ressources/Images/default.jpg'\"/></a><ul class='dropdown-menu'>
                 <li><a>$position</a></li>
                 <li class='dropdown-header'>Evenement affectant la cellule</li>";
                 foreach (connaitreTouteProprietes($celluleTableau,$cheminTableau) as $unResultat){
@@ -122,6 +85,8 @@ function constructionTableau($colonne,$ligne,$cheminTableau){
                                                 . "<li>$lesDetails[0]</li>"
                                                 . "<li class='dropdown-header'>Description de l'événement</li>"
                                                 . "<li>$lesDetails[1]</li>"
+                                                . "<li class='dropdown-header'>Conséquence de l'événement</li>"
+                                                . "<li>$lesDetails[2]</li>"
                                                 . "<li class='dropdown-header'>Nombre de tours que dure l'événement</li>"
                                                 . "<li><a class='trigger right-caret'>$demarreQuand[1]</a>"
                                                     . "<ul class='dropdown-menu sub-menu'><form action='index.php?uc=genererTableau&action=modifierEvementCellule' method='POST'>"
@@ -136,7 +101,7 @@ function constructionTableau($colonne,$ligne,$cheminTableau){
                                                     . "<li>Donner une nouvelle valeur</li>"
                                                         . "<li><input type='number' name='demarreQuand' min=".$_SESSION['nbTours']." max='1000' required></li>"
                                                     . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button></li>"
-                                                    . "<input type='hidden' name='codeCelluleEtPropriete' value='$codeCelluleEtPropriete'><input type='hidden' name='cheminTableau' value='$cheminTableau'><input type='hidden' name='dureeEvenement' value='$lesDetails[2]'></form></ul>"
+                                                    . "<input type='hidden' name='codeCelluleEtPropriete' value='$codeCelluleEtPropriete'><input type='hidden' name='cheminTableau' value='$cheminTableau'><input type='hidden' name='dureeEvenement' value='$lesDetails[4]'></form></ul>"
                                                 . "</li>"
                                     . "<li><a href='#' class='btn btn-primary btn-lg active btn-sm' onclick=\"transfertSuppression('$codePropriete','$position','$cheminTableau')\">Supprimer attribut</a></li>"
                                 . "</ul>"
@@ -176,14 +141,14 @@ function constructionTableau($colonne,$ligne,$cheminTableau){
 // --- construireTableauFichier ---
 // Constuit le tableau dans le fichier 
 // NOTE : ne gére que le premier tableau actuellement
-function construireTableauFichier($colonne,$ligne,$cheminTableau){
+function construireTableauFichier($colonne,$ligne,$cheminTableau,$numeroPlateau,$sensPlateau){
     $fichierTours = fopen($cheminTableau."/compteurTours.txt","a+");
     fputs($fichierTours, 0);
     fclose($fichierTours);
     $lettre = 'a';
     $cheminTableau = $cheminTableau."/tableau_1.txt";
     $fichier = fopen($cheminTableau,"r+"); 
-    fputs($fichier,$colonne."_".$ligne."\r\n");
+    fputs($fichier,$numeroPlateau."_".$sensPlateau."_".$colonne."_".$ligne."\r\n");
     fputs($fichier, "-----\r\n");
     for($i=0;$i<$ligne;$i++){
         if($i != 0)
@@ -284,24 +249,20 @@ function ajoutProprietesCellule($lenomEvenement,$cheminTableau,$quand){
 // Demande 2 String (1 = code du tableau + code de la propriété (concaténé au préalable), 1 = le chemin du tableau voulu)
 function suppressionProprietesDansCellule($codeCellulePropriete,$cheminTableau){
     $fichier = fopen($cheminTableau,"r+");
-    $resultat = false;
-    if ($fichier){
-        while (($buffer = fgets($fichier, 4096)) !== false) {
-            if(strpos($buffer, $codeCellulePropriete) !== false) {
-                file_put_contents($cheminTableau, str_replace($buffer, "", file_get_contents($cheminTableau)));
-                $resultat = true;
+    $erreur = false;
+    try{
+        if ($fichier){
+            while (($buffer = fgets($fichier, 4096)) !== false) {
+                if(strpos($buffer, $codeCellulePropriete) !== false)
+                    file_put_contents($cheminTableau, str_replace($buffer, "", file_get_contents($cheminTableau)));
             }
         }
-        if (!feof($fichier))
-            echo "Erreur: fgets() de suppression a échoué\n";
+        fclose($fichier);
+    }catch(Exception $e){
+        $erreur = true;
+        print_r($e);
     }
-    fclose($fichier);
-    if ($resultat == true){
-        echo "<div class='alert alert-success'><strong><span class='glyphicon glyphicon-ok'></span> Réussite !</strong><br/>La propriété a été effacée de la cellule.</div>";
-    }else{
-        echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Avertissement !</strong><br/>La propriété n'a pas été effacée de la cellule ou la propriété n'existe pas.</div>";
-    }
-    header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
+    return $erreur;
 }
 
 function modifierEvementCellule($cheminTableau,$demarreQuand,$dureeEvenement,$codeCelluleEtPropriete){
@@ -471,18 +432,58 @@ function incrementerTours($nbTours,$chemin){
         ftruncate($fichier, 0);
         fputs($fichier,$nbTours + 1);
     }
+    return $nbTours + 1;
 }
 
 function determinerEvenementCeTour($nbTours,$nomTableau){
-    foreach (connaitreTableau("combienTableau", $nomTableau) as $unTableau){
-        $cheminTableau = "../aideMJ/ressources/Maps/".$nomTableau."/".$unTableau;
-        $fichier = fopen($cheminTableau,"r"); 
-        if ($fichier){
-            while (($buffer = fgets($fichier)) !== false) {
-                
+    $evenementsActifs = array();
+    $i = 0;
+    try{
+        foreach (connaitreTableau("combienTableau", $nomTableau) as $unTableau){
+            $cheminTableau = "../aideMJ/ressources/Maps/".$nomTableau."/".$unTableau;
+            $fichier = fopen($cheminTableau,"r+"); 
+            if ($fichier){
+                while (($buffer = fgets($fichier)) !== false) {
+                    $rest = substr($buffer,9);
+                    if ($rest != null && $i > 0){
+                        $codeCellulePropriete = substr($buffer,0,-6);
+                        $resultat = explode("_", $rest);
+                        $demarreQuand = $resultat[0]; //Démarre quand
+                        $quandFinira = $resultat[0] + $resultat[1]; //Démarre quand + Durée en temps
+                        if ($quandFinira < $nbTours){
+                            suppressionProprietesDansCellule($codeCellulePropriete, $cheminTableau);
+                        }else if ($demarreQuand <= $nbTours && $quandFinira >= $nbTours){
+                            $codePropriete = substr($buffer,6,-7);
+                            array_push($evenementsActifs,$codePropriete);
+                        }
+                    }
+                    ++$i;
+                }
+            }
+            fclose($fichier);
+        }
+        return $evenementsActifs;
+    }catch(Exception $e){
+        print_r($e);
+    }
+}
+
+// --- getTousPlateaux ---
+// Determiner quel plateau est disponible à l'utilisation
+// Retour un Array contenant la liste des numéros des plateaux disponibles.
+function getTousPlateaux(){    
+    $lesPlateaux = array();
+    $repertoire = '../aideMJ/ressources/Images/';
+    $dossier = opendir($repertoire); 
+    while($file = readdir($dossier)) {
+        if($file != '.' && $file != '..' && !is_dir($repertoire.$file)){
+            if (strpos($file, "complet") !== false){
+                $file = explode(".",substr($file,8));
+                array_push($lesPlateaux,"<option value='$file[0]'>$file[0]</option>");
             }
         }
-        fclose($fichier);
     }
+    closedir($dossier);
+    return $lesPlateaux;
 }
 ?>

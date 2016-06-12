@@ -10,6 +10,7 @@ $uc = $_REQUEST['uc'];
 switch ($uc){
     case "accueil":
         $resultat = connaitreTableau("tous","");
+        $lesPlateaux = getTousPlateaux();
         include("vues/accueil.php");
         break;
     case "genererTableau":
