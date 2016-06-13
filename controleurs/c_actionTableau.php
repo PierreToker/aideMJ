@@ -54,12 +54,11 @@ switch ($action){
         $nomTableau = str_replace(" ", "_", $nomTableau);
         if (connaitreTableau("certains",$nomTableau)){
             echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Erreur</strong><br/>Le tableau ne peut pas étre créé, ce nom est déjà attribué à un autre tableau.</div>";
-            header('Refresh:2;url=index.php');
         }else{
             constructionNouveauTableau($colonne,$ligne,$nomTableau,$numeroPlateau,$sensPlateau);
             echo "<div class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Réussite !</strong><br/>La map a bien été créée. vous allez être redirigé automatiquement vers la selection des tableaux.</div>";
-            header('Refresh:2;url=index.php');
         }
+        header('Refresh:2;url=index.php');
         break;
     case "ajouterEvementCellule":
         $nomEvenement = isset($_POST['titreEvenement']) ? $_POST['titreEvenement'] : NULL;
@@ -74,7 +73,7 @@ switch ($action){
         $codeASupprimer = $codeCellule."_".$codePropriete;
         $erreur = suppressionProprietesDansCellule($codeASupprimer,$cheminTableau);
         if ($erreur == false){
-        echo "<div class='alert alert-success'><strong><span class='glyphicon glyphicon-ok'></span> Réussite !</strong><br/>La propriété a été effacée de la cellule.</div>";
+            echo "<div class='alert alert-success'><strong><span class='glyphicon glyphicon-ok'></span> Réussite !</strong><br/>La propriété a été effacée de la cellule.</div>";
         }else{
             echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Avertissement !</strong><br/>La propriété n'a pas été effacée de la cellule ou la propriété n'existe pas.</div>";
         }
@@ -93,6 +92,17 @@ switch ($action){
         $codeCelluleEtPropriete = isset($_POST['codeCelluleEtPropriete']) ? $_POST['codeCelluleEtPropriete'] : NULL;
         modifierEvementCellule($cheminTableau,$demarreQuand,$dureeEvenement,$codeCelluleEtPropriete);
         echo "<div class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Réussite !</strong><br/>L'événement a été mis à jours.</div>";
+        header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
+        break;
+    case "ajouterDecor":
+        $nomElement = isset($_POST['nomElement']) ? $_POST['nomElement'] : NULL;
+        $nomTableau = isset($_SESSION['nomTableau']) ? $_SESSION['nomTableau'] : NULL;
+        $cellule = isset($_POST['cellule']) ? $_POST['cellule'] : NULL;
+        if (ajoutElementDecor($nomElement,$nomTableau,$cellule) == true){
+            echo "<div class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Réussite !</strong><br/>L'élément à bien été ajouté.</div>";
+        }else{
+            echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Avertissement !</strong><br/>L'élément n'a pas été ajouté car il existe déjà !</div>";
+        }
         header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
         break;
     default :

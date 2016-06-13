@@ -12,44 +12,44 @@ foreach ($evenementsActifs as $unEvenement){
     echo "----------------<br/>";
 }
 foreach ($monTableau as $unTableau){
-    foreach ($unTableau as $unElement){
-        echo $unElement;  
+    if (is_array($unTableau)){ //Evite avertissement resulte d’un appel à foreach sur une variable qui n’est pas un tableau.
+        foreach ($unTableau as $unElement){
+            echo $unElement;  
+        }
     }
 }
 ?>
 <a href="index.php">Retour à l'index</a>
 <form action='index.php?uc=actionSurEvenement&action=creerEvenement' method='POST'>
-    <div class='dropdown' style='position:relative'>
-    <a href='#' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Créer un événement</a>
-    <ul class='dropdown-menu'>Création d'un événement
-        <li><a class='dropdown-header'>Titre de l'événement</a></li>
-        <li><input type='text' class='form-control' name='titreEvenement' required></li>
-        <li><a class='dropdown-header'>Description de l'événement</a></li>
-        <li><textarea rows='3' class='form-control' name='descriptionEvenement' required></textarea></li>
-        <li><a class='dropdown-header'>Effet de l'événement</a></li>
-        <li><textarea rows='2' class='form-control' name='effetEvenement' required></textarea></li>
-        <li><a class='dropdown-header'>Nombre de tours que dure l'événement</a></li>
-        <li><input type="number" name="nbTours" min="0" max="1000" required></li>
-        <li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>
-        <button class='btn btn-secondary-outline btn-sm' type='reset'>Tous effacer</button>
-    </ul>
+    <div class='dropdown' style='position:relative; '>
+        <a href='#' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Créer un événement</a>
+        <ul class='dropdown-menu'>Création d'un événement
+            <li><a class='dropdown-header'>Titre de l'événement</a></li>
+            <li><input type='text' class='form-control' name='titreEvenement' required></li>
+            <li><a class='dropdown-header'>Description de l'événement</a></li>
+            <li><textarea rows='3' class='form-control' name='descriptionEvenement' required></textarea></li>
+            <li><a class='dropdown-header'>Effet de l'événement</a></li>
+            <li><textarea rows='2' class='form-control' name='effetEvenement' required></textarea></li>
+            <li><a class='dropdown-header'>Nombre de tours que dure l'événement</a></li>
+            <li><input type="number" name="nbTours" min="0" max="1000" required></li>
+            <li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>
+            <button class='btn btn-secondary-outline btn-sm' type='reset'>Tous effacer</button>
+        </ul>
     </div>
 </form><br/>
 <form action='index.php?uc=actionSurEvenement&action=supprimerEvenement' method='POST'>
     <div class='dropdown' style='position:relative'>
-    <a href='#' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Supprimer un événement</a>
-    <ul class='dropdown-menu'>Suppression d'un événement
-        <li><a class='dropdown-header'>Titre de l'événement</a></li>
-        <select name='numeroPropriete'>
-            <?php
-            foreach ($lesProprietesRecuperer as $unePropriete){
-                echo $unePropriete;
-            }
-            ?>
-        </select>
-        <li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>
-        <button class='btn btn-secondary-outline btn-sm' type='reset'>Tous effacer</button>
-    </ul>
+        <a href='#' class='btn btn-primary dropdown-toggle' data-toggle='dropdown'>Supprimer un événement</a>
+        <ul class='dropdown-menu'>Suppression d'un événement
+            <li><a class='dropdown-header'>Titre de l'événement</a></li>
+            <select name='numeroPropriete'><?php
+                foreach ($lesProprietesRecuperer as $unePropriete){
+                    echo $unePropriete;
+                }?>
+            </select>
+            <li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>
+            <button class='btn btn-secondary-outline btn-sm' type='reset'>Tous effacer</button>
+        </ul>
     </div>
 </form><br/><br/>
 <form action='index.php?uc=genererTableau&action=tourSuivant' method='POST'>

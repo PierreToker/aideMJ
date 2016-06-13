@@ -128,8 +128,17 @@ function constructionTableau($colonne,$ligne,$imageFond,$cheminTableau,$sensPlat
                                     . "<li><a class='dropdown-header'>A quelle tour commencera l'événément</a></li>"
                                     . "<li><input type='number'number' name='quand' min=".$_SESSION['nbTours']." max='1000' required></li>"
                                     . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>"
-                                . "<input type='hidden' name='cheminTableau' value='$cheminTableau'></form></ul>"
-                            . "</li></ul></td>"; 
+                                . "<input type='hidden' name='cheminTableau' value='$cheminTableau'></form></ul><br/>"
+                            . "</li>"
+                        . "<li><a href='#' role='button' class='trigger right-caret btn btn-primary btn-lg active btn-sm'>Ajouter un élément du décor</a>"
+                        . "<ul class='dropdown-menu sub-menu'><form action='index.php?uc=genererTableau&action=ajouterDecor' method='POST'>"
+                            . "<li><a class='dropdown-header'>Choississez l'élément à ajouter</a></li>"
+                            . "<li><select name='nomElement'>"
+                                . "<option value='arbre'>Arbre</option>"
+                                . "<option value='pilier'>Pilier</option>"
+                            . "</select></li><br/>"
+                            . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>"
+                        . "<input type='hidden' name='cellule' value='$position'></form></ul></li></ul></td>"; 
         }
         $tableau[count($tableau)+1] = "</tr>";
     }
@@ -143,7 +152,7 @@ function constructionTableau($colonne,$ligne,$imageFond,$cheminTableau,$sensPlat
 // NOTE : ne gére que le premier tableau actuellement
 function construireTableauFichier($colonne,$ligne,$cheminTableau,$numeroPlateau,$sensPlateau){
     $fichierTours = fopen($cheminTableau."/compteurTours.txt","a+");
-    fputs($fichierTours, 0);
+    fputs($fichierTours, 1);
     fclose($fichierTours);
     $lettre = 'a';
     $cheminTableau = $cheminTableau."/tableau_1.txt";
@@ -485,5 +494,27 @@ function getTousPlateaux(){
     }
     closedir($dossier);
     return $lesPlateaux;
+}
+
+// --- ajoutElementDecor ---
+// Ecrit dans le fichier elementsDecor.txt l'emplacement du décor (exemple : t1_a0_arbre)
+// Retour un boolean (le résultat de l'opération)
+function ajoutElementDecor($nomElement,$nomTableau,$cellule){
+    $existeDeja = false;
+    $cheminTableau = "../aideMJ/ressources/Maps/".$nomTableau."/elementsDecor.txt";
+    $fichier = fopen($cheminTableau,"r+");
+    if ($fichier){
+        while(($buffer = fgets($fichier)) !== false) {
+            if(stripos($buffer,trim($cellule)."_".$nomElement) !== false){
+                echo "il existe déjà !";
+                $existeDeja = true;
+                break;
+            }
+        }
+        if ($existeDeja == false)
+            fputs($fichier,trim($cellule)."_".$nomElement."\r\n");
+    }
+    fclose($fichier);
+    return $existeDeja;
 }
 ?>
