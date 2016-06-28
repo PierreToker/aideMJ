@@ -1,3 +1,33 @@
+#premierPlan{
+    font-size: 4.5em;
+    z-index: 99;
+    color: green;
+    position: absolute;
+}
+
+.blur img{
+    filter: blur(0);
+    -webkit-filter: blur(0);
+    -moz-filter: blur(0);
+    -o-filter: blur(0);
+    -ms-filter: blur(0);
+}
+
+.blur img:hover{
+    filter: blur(2px);
+    -webkit-filter: blur(2px);
+    -moz-filter: blur(2px);
+    -o-filter: blur(2px);
+    -ms-filter: blur(2px);
+}
+
+.glyphicon{
+    top: -68px;
+    z-index: 1;
+    position: absolute;
+}
+
+
 .rotation_h {
     -moz-transform: rotate(0deg);  /* FF3.5+ */
     -o-transform: rotate(0deg);  /* Opera 10.5 */
@@ -22,15 +52,20 @@
     -webkit-transform: rotate(+180deg);  
 }
 
-.dropdown-menu>li
-{	position:relative;
-	-webkit-user-select: none; /* Chrome/Safari */        
-	-moz-user-select: none; /* Firefox */
-	-ms-user-select: none; /* IE10+ */
-	/* Rules below not implemented in browsers yet */
-	-o-user-select: none;
-	user-select: none;
-	cursor:pointer;
+.dropdown-menu{
+    top : auto;
+    left: auto;
+    position:absolute;
+}
+
+.dropdown-menu>li{	
+    -webkit-user-select: none; /* Chrome/Safari */        
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* IE10+ */
+    /* Rules below not implemented in browsers yet */
+    -o-user-select: none;
+    user-select: none;
+    cursor:pointer;
 }
 .dropdown-menu .sub-menu {
     left: 100%;
@@ -38,24 +73,22 @@
     top: 0;
     display:none;
     margin-top: -1px;
-	border-top-left-radius:0;
-	border-bottom-left-radius:0;
-	border-left-color:#fff;
-	box-shadow:none;
+    border-top-left-radius:0;
+    border-bottom-left-radius:0;
+    border-left-color:#fff;
+    box-shadow:none;
 }
-.right-caret:after,.left-caret:after
- {	content:"";
+
+.right-caret:after,.left-caret:after{	
+    content:"";
     border-bottom: 5px solid transparent;
     border-top: 5px solid transparent;
     display: inline-block;
     height: 0;
     vertical-align: middle;
     width: 0;
-	margin-left:5px;
+    margin-left:5px;
 }
-.right-caret:after
-{	border-left: 5px solid #ffaf46;
-}
-.left-caret:after
-{	border-right: 5px solid #ffaf46;
-}
+
+.right-caret:after{ border-left: 5px solid #ffaf46; }
+.left-caret:after{ border-right: 5px solid #ffaf46; }

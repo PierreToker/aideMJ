@@ -1,16 +1,18 @@
 <?php
-session_start();
 require_once ("include/fonctions.php");
 require_once ("include/fonctionsProprietes.php");
 include("vues/v_entete.php") ;
+session_start();
 if(!isset($_REQUEST['uc'])){
     $_REQUEST['uc'] = 'accueil';
 }
 $uc = $_REQUEST['uc'];
 switch ($uc){
     case "accueil":
+        $_SESSION['connecter'] = true;
+        
         $resultat = connaitreTableau("tous","");
-        $lesPlateaux = getTousPlateaux();
+        $_SESSION['lesPlateaux'] = getTousPlateaux();
         include("vues/accueil.php");
         break;
     case "genererTableau":

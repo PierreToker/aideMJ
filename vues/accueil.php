@@ -5,7 +5,7 @@
     Nb Ligne : <input type="text" name="ligne"><br/>
     Plateau <select name="numeroPlateau">
         <?php 
-        foreach ($lesPlateaux as $unPlateau){
+        foreach ($_SESSION['lesPlateaux'] as $unPlateau){
             echo $unPlateau;
         }?>
     </select><br/>

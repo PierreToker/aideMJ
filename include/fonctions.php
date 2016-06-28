@@ -1,44 +1,18 @@
 <?php
-// --- actionFichier ---
-// Effectue l'action sur le fichier en gérant les erreurs
-// Demande 3 string (1 = l'action voulue sur le fichier, 1 = le chemin du fichier, 1 = le mode d'accès au fichier r+,r...)
-// Retourne la ressource fichier et, un message d'erreur si cas échéant 
-// r = Ouvre le fichier en lecture seule. Cela signifie que vous pourrez seulement lire le fichier.
-// r+ = Ouvre le fichier en lecture et écriture. Vous pourrez non seulement lire le fichier, mais aussi y écrire (on l'utilisera assez souvent en pratique).
-// a = Ouvre le fichier en écriture seule. Mais il y a un avantage : si le fichier n'existe pas, il est automatiquement créé.
-// a+ = Ouvre le fichier en lecture et écriture. Si le fichier & n'existe pas, il est créé automatiquement. Attention : le répertoire doit avoir un CHMOD à 777 dans ce cas ! À noter que si le fichier existe déjà, le texte sera rajouté à la fin.
-function actionFichier($action,$nomFichier,$modeAcces){
-    switch ($action){
-        case "ouvrir":
-            if (!$fp = fopen($nomFichier,$modeAcces)) {
-                echo "Echec de l'ouverture du fichier";
-                return $fp;
-            } else {
-                return $fp;
-            }
-            break;
-        case "fermer":
-            if (!$fp = fclose($nomFichier)) {
-                echo "Echec de fermeture du fichier";
-                return $fp;
-            } else {
-                return $fp;
-            }
-            break;
-    }
-}
-
 // --- constructionNouveauTableau ---
 // Construit le tableau souhaité par l'utilisateur dans un fichier txt quand la map n'existe pas
 // Demande 2 Int (1= la longueur du tableau ET 1 = largeur du tableau) et 1 String (1= le nom de la map)
-function constructionNouveauTableau($colonne,$ligne,$nomTableau,$numeroPlateau,$sensPlateau){
+function constructionNouveauTableau($colonne,$ligne,$nomTableau,$numeroPlateau,$sensPlateau,$numeroTableau){
     $chemin = '../aideMJ/ressources/Maps/'.$nomTableau;
     try{
-        if (!mkdir($chemin, 0777, true))
-            die('Echec lors de la création du dossier.');
-        $fichier = actionFichier("ouvrir","../aideMJ/ressources/Maps/$nomTableau/tableau_1.txt","a+");
+        if (!file_exists($chemin)) {
+            if (!mkdir($chemin, 0777, true))
+                die('Echec lors de la création du dossier.');
+        }
+        $fichier = fopen("../aideMJ/ressources/Maps/$nomTableau/tableau_$numeroTableau.txt","a+");
+        fclose($fichier);
         $cheminTableau = "../aideMJ/ressources/Maps/$nomTableau/";
-        construireTableauFichier($colonne,$ligne,$cheminTableau,$numeroPlateau,$sensPlateau);
+        construireTableauFichier($colonne,$ligne,$cheminTableau,$numeroPlateau,$sensPlateau,$numeroTableau);
     }catch(Exception $e){
         print_r($e);
     }
@@ -52,17 +26,21 @@ function constructionTableau($colonne,$ligne,$imageFond,$cheminTableau,$sensPlat
     $tableau = array();
     $lettre = 'a';
     $lesProprietes = getToutesLesProprietes();
+    $lesElementsDecors = getLesDecors($_SESSION['nomTableau']);
     $fichier = fopen($cheminTableau,"r"); 
-    $tableau[0] = "<div class='dropdown' style='position:relative'><table border='3' class='rotation_$sensPlateau'>";
+    $tableau[0] = "<div class='dropdown' style='position:absolute;z-index:2;display: inline-flex;'><table border='3' class='rotation_$sensPlateau'>";
     for($i=0;$i<$ligne;$i++){
         if($i != 0)
             ++$lettre;
         $tableau[count($tableau)+1] = "<tr>";
         for($x=0;$x<$colonne;$x++){
+            $elementDecor = "";
             $position = "t1_".$lettre.$x;
             $celluleTableau = array();
+            if (array_key_exists($position,$lesElementsDecors))
+                $elementDecor = determinerElementDecor($lesElementsDecors,$position);
             array_push($celluleTableau, $position);
-            $tableau[count($tableau)+1] = "<td id=\"leTD\"><a href='#' data-toggle='dropdown'><img src='../aideMJ/ressources/Images/$imageFond/$imageFond"."$lettre"."$x.jpg' height='70' width='70' onerror=\"this.src='../aideMJ/ressources/Images/default.jpg'\"/></a><ul class='dropdown-menu'>
+            $tableau[count($tableau)+1] = "<td id=\"leTD\"><a href='#' data-toggle='dropdown'><section class='blur'><img id='imageBackground' src='../aideMJ/ressources/Images/$imageFond/$imageFond"."$lettre"."$x.jpg' height='70' width='70' onerror=\"this.src='../aideMJ/ressources/Images/default.jpg'\"/></section>$elementDecor</a><ul class='dropdown-menu'>
                 <li><a>$position</a></li>
                 <li class='dropdown-header'>Evenement affectant la cellule</li>";
                 foreach (connaitreTouteProprietes($celluleTableau,$cheminTableau) as $unResultat){
@@ -126,7 +104,7 @@ function constructionTableau($colonne,$ligne,$imageFond,$cheminTableau,$sensPlat
                                     }
             $tableau[count($tableau)+1] = "</select></li><br/>"
                                     . "<li><a class='dropdown-header'>A quelle tour commencera l'événément</a></li>"
-                                    . "<li><input type='number'number' name='quand' min=".$_SESSION['nbTours']." max='1000' required></li>"
+                                    . "<li><input type='number' name='quand' min=".$_SESSION['nbTours']." max='1000' required></li>"
                                     . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>"
                                 . "<input type='hidden' name='cheminTableau' value='$cheminTableau'></form></ul><br/>"
                             . "</li>"
@@ -136,7 +114,10 @@ function constructionTableau($colonne,$ligne,$imageFond,$cheminTableau,$sensPlat
                             . "<li><select name='nomElement'>"
                                 . "<option value='arbre'>Arbre</option>"
                                 . "<option value='pilier'>Pilier</option>"
-                            . "</select></li><br/>"
+                                . "<option value='porte'>Porte</option>"
+                            . "</select></li>"
+                            . "<li><a class='dropdown-header'>Ou se situe la porte ?</a></li>"
+                            . "<li><input type='text' name='champsConcernes'></li><br/>" //BUG INPUT == NE FONCTIONNE PAS, RAISON INCONNUE
                             . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>"
                         . "<input type='hidden' name='cellule' value='$position'></form></ul></li></ul></td>"; 
         }
@@ -150,12 +131,12 @@ function constructionTableau($colonne,$ligne,$imageFond,$cheminTableau,$sensPlat
 // --- construireTableauFichier ---
 // Constuit le tableau dans le fichier 
 // NOTE : ne gére que le premier tableau actuellement
-function construireTableauFichier($colonne,$ligne,$cheminTableau,$numeroPlateau,$sensPlateau){
+function construireTableauFichier($colonne,$ligne,$cheminTableau,$numeroPlateau,$sensPlateau,$numeroTableau){
     $fichierTours = fopen($cheminTableau."/compteurTours.txt","a+");
     fputs($fichierTours, 1);
     fclose($fichierTours);
     $lettre = 'a';
-    $cheminTableau = $cheminTableau."/tableau_1.txt";
+    $cheminTableau = $cheminTableau."/tableau_$numeroTableau.txt";
     $fichier = fopen($cheminTableau,"r+"); 
     fputs($fichier,$numeroPlateau."_".$sensPlateau."_".$colonne."_".$ligne."\r\n");
     fputs($fichier, "-----\r\n");
@@ -163,7 +144,7 @@ function construireTableauFichier($colonne,$ligne,$cheminTableau,$numeroPlateau,
         if($i != 0)
             $lettre++;
         for($x=0;$x<$colonne;$x++){
-            $position = "t1_".$lettre.$x;
+            $position = "t".$numeroPlateau."_".$lettre.$x;
             $fichierA = fopen($cheminTableau,"r"); 
             if ($fichierA){
                while (!feof($fichierA)) {
@@ -196,7 +177,7 @@ function construireTableauFichier($colonne,$ligne,$cheminTableau,$numeroPlateau,
 function ajoutProprietesCellule($lenomEvenement,$cheminTableau,$quand){
     $contenuAvant = array(); $contenuApres = array();
     $delimiteur = 0;
-    $resultat = false; $existeDeja = false;
+    $resultat = false; $erreur = false;
     $pieces = explode("||", $lenomEvenement);
     $lenomEvenement = substr($pieces[0],6); 
     $lenomEvenement = substr($lenomEvenement,0,-2);
@@ -220,14 +201,14 @@ function ajoutProprietesCellule($lenomEvenement,$cheminTableau,$quand){
                 break;
             }else{
                 if(strpos($buffer,$celluleEtEvenement) !== false){
-                    $existeDeja = true;
+                    $erreur = true;
                     break;
                 }
                 $delimiteur += strlen($buffer);
                 array_push($contenuAvant,$buffer."\n");
             }
         }
-        if ($existeDeja == false){
+        if ($erreur == false){
             fseek($fichier, $delimiteur);
             while (($buffer = fgets($fichier, 4096)) !== false) { //Prend tout le reste du fichier
                 array_push($contenuApres,$buffer."\n");
@@ -244,13 +225,7 @@ function ajoutProprietesCellule($lenomEvenement,$cheminTableau,$quand){
         }
     }
     fclose($fichier);
-    if ($existeDeja == false){
-        echo "<div class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Réussite !</strong><br/>Opération effectuée avec succès.</div>";
-        header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
-    }else{
-        echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Echec !</strong><br/>L'opération n'a pas aboutie car la cellule comporte déjà cet attribut.</div>";
-        header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
-    }
+    return $erreur;
 }
 
 // --- suppressionProprietesDansCellule ---
@@ -380,6 +355,19 @@ function connaitreTableau($action,$nomTableau){
             closedir($dir);
             return $lesFichiers;
             break;
+        case "connaitreNumeroTableau":
+            closedir($dir);
+            $numeroTableau = "";
+            $dirname = "../aideMJ/ressources/Maps/".$nomTableau."/";
+            $dir = opendir($dirname); 
+            $lesFichiers = array(); 
+            while($file = readdir($dir)) {
+                if($file != '.' && $file != '..' && !is_dir($dirname.$file) && stristr($file, "tableau_") == true)
+                    $numeroTableau = substr(stristr($file,"_"),1,-4)+1;
+            }
+            closedir($dir);
+            return $numeroTableau;
+            break;
         case "tous":
             $lesFichiers = array(); 
             while($file = readdir($dir)) {
@@ -444,17 +432,22 @@ function incrementerTours($nbTours,$chemin){
     return $nbTours + 1;
 }
 
+// --- determinerEvenementCeTour ---
+// Permet de connaitre les événements qui se déclenchent ce tours-ci
+// Demande un Int (1= le tours (non incrémenté)) et un String (1= le chemin ou se situe le fichier compteurTours.txt)
 function determinerEvenementCeTour($nbTours,$nomTableau){
     $evenementsActifs = array();
-    $i = 0;
     try{
         foreach (connaitreTableau("combienTableau", $nomTableau) as $unTableau){
+            $i = 0;
             $cheminTableau = "../aideMJ/ressources/Maps/".$nomTableau."/".$unTableau;
+            echo $cheminTableau."<br/>";
             $fichier = fopen($cheminTableau,"r+"); 
             if ($fichier){
                 while (($buffer = fgets($fichier)) !== false) {
                     $rest = substr($buffer,9);
                     if ($rest != null && $i > 0){
+                        echo "oui".$rest;
                         $codeCellulePropriete = substr($buffer,0,-6);
                         $resultat = explode("_", $rest);
                         $demarreQuand = $resultat[0]; //Démarre quand
@@ -505,7 +498,7 @@ function ajoutElementDecor($nomElement,$nomTableau,$cellule){
     $fichier = fopen($cheminTableau,"r+");
     if ($fichier){
         while(($buffer = fgets($fichier)) !== false) {
-            if(stripos($buffer,trim($cellule)."_".$nomElement) !== false){
+            if(stripos($buffer,$cellule."_".$nomElement) !== false){
                 echo "il existe déjà !";
                 $existeDeja = true;
                 break;
@@ -516,5 +509,64 @@ function ajoutElementDecor($nomElement,$nomTableau,$cellule){
     }
     fclose($fichier);
     return $existeDeja;
+}
+
+// --- getLesDecors ---
+// Donne tous les décors attribué au tableau
+// Demande un String (le chemin qui mène au tableau
+// Retour un Array des éléments du décors (arbre, pilier...)
+function getLesDecors($nomTableau){
+    $lesElements = array();
+    $cheminTableau = "../aideMJ/ressources/Maps/".$nomTableau."/elementsDecor.txt";
+    $fichier = fopen($cheminTableau,"r");
+    if ($fichier){
+        while(($buffer = fgets($fichier)) !== false) {
+            $resultat = explode("_",$buffer);
+            $lesElements[$resultat[0]."_".$resultat[1]] = $resultat[2];
+        }
+    }
+    fclose($fichier);
+    return $lesElements;
+}
+
+function determinerElementDecor($lesElementsDecors,$positionDansTableau){
+    switch(trim($lesElementsDecors[$positionDansTableau])){
+        case "arbre":
+            return $decor = "<div id='premierPlan'><span class='glyphicon glyphicon-tree-deciduous'></div>";          
+            break;
+        case "pilier":
+            return $decor = "<div id='premierPlan'><span class='glyphicon glyphicon-pawn'></div>";          
+            break;
+        case "porte":
+            echo "Porte, pas encore codé !";
+            break;
+    }
+}
+
+
+function gestionErreur($natureAction,$erreur){
+    $index = false;
+    switch($natureAction){
+        case "suppressionProprietesDansCellule":
+            if ($erreur == false){
+                echo "<div class='alert alert-success'><strong><span class='glyphicon glyphicon-ok'></span> Réussite !</strong><br/>La propriété a été effacée de la cellule.</div>";
+            }else{
+                echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Avertissement !</strong><br/>La propriété n'a pas été effacée de la cellule ou la propriété n'existe pas.</div>";
+            }
+        break;
+        case "ajouterEvementCellule":
+            if ($existeDeja == false){
+                echo "<div class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Réussite !</strong><br/>Opération effectuée avec succès.</div>";
+            }else{
+                echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Echec !</strong><br/>L'opération n'a pas aboutie car la cellule comporte déjà cet attribut.</div>";
+            }    
+            break;
+        case "":
+            
+            break;
+        default :
+            echo "Rien selectionné dans la fonction gestionErreur()";
+    }
+    header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
 }
 ?>

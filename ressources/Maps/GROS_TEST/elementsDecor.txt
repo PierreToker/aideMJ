@@ -1,1 +1,6 @@
 t1_a2_arbre
+t1_h6_arbre
+t1_h2_arbre
+t1_g3_pilier
+t1_k4_arbre
+t1_k8_arbre

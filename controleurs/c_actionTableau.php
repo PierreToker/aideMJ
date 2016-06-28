@@ -50,13 +50,14 @@ switch ($action){
         $ligne = isset($_REQUEST['ligne']) ? $_REQUEST['ligne'] : NULL;
         $numeroPlateau = isset($_REQUEST['numeroPlateau']) ? $_REQUEST['numeroPlateau'] : NULL;
         $sensPlateau = isset($_REQUEST['sensPlateau']) ? $_REQUEST['sensPlateau'] : NULL;
-        $nomTableau = isset($_REQUEST['nomTableau']) ? $_REQUEST['nomTableau'] : NULL;
-        $nomTableau = str_replace(" ", "_", $nomTableau);
-        if (connaitreTableau("certains",$nomTableau)){
+        $_SESSION['nomTableau'] = isset($_REQUEST['nomTableau']) ? $_REQUEST['nomTableau'] : $_SESSION['nomTableau'];
+        $nomTableau = str_replace(" ", "_", $_SESSION['nomTableau']);
+        $numeroTableau = connaitreTableau("connaitreNumeroTableau",$nomTableau);
+        if ($numeroTableau == 0){
             echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Erreur</strong><br/>Le tableau ne peut pas étre créé, ce nom est déjà attribué à un autre tableau.</div>";
         }else{
-            constructionNouveauTableau($colonne,$ligne,$nomTableau,$numeroPlateau,$sensPlateau);
-            echo "<div class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Réussite !</strong><br/>La map a bien été créée. vous allez être redirigé automatiquement vers la selection des tableaux.</div>";
+            constructionNouveauTableau($colonne,$ligne,$nomTableau,$numeroPlateau,$sensPlateau,$numeroTableau);
+            echo "<div class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Réussite !</strong><br/>Le plateau a bien été créée. vous allez être redirigé automatiquement vers la selection des tableaux.</div>";
         }
         header('Refresh:2;url=index.php');
         break;
@@ -64,7 +65,8 @@ switch ($action){
         $nomEvenement = isset($_POST['titreEvenement']) ? $_POST['titreEvenement'] : NULL;
         $cheminTableau = isset($_POST['cheminTableau']) ? $_POST['cheminTableau'] : NULL;
         $quand = isset($_POST['quand']) ? $_POST['quand'] : NULL;
-        ajoutProprietesCellule($nomEvenement,$cheminTableau,$quand);
+        $erreur = ajoutProprietesCellule($nomEvenement,$cheminTableau,$quand);
+        gestionErreur("ajouterEvementCellule",$erreur);
         break;
     case "supprimerCellule":
         $codePropriete = isset($_POST['codePropriete']) ? $_POST['codePropriete'] : NULL;
@@ -72,12 +74,7 @@ switch ($action){
         $cheminTableau = isset($_POST['cheminTableau']) ? $_POST['cheminTableau'] : NULL;
         $codeASupprimer = $codeCellule."_".$codePropriete;
         $erreur = suppressionProprietesDansCellule($codeASupprimer,$cheminTableau);
-        if ($erreur == false){
-            echo "<div class='alert alert-success'><strong><span class='glyphicon glyphicon-ok'></span> Réussite !</strong><br/>La propriété a été effacée de la cellule.</div>";
-        }else{
-            echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Avertissement !</strong><br/>La propriété n'a pas été effacée de la cellule ou la propriété n'existe pas.</div>";
-        }
-        header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
+        gestionErreur("suppressionProprietesDansCellule",$erreur);
         break;
     case "tourSuivant":
         $_SESSION['nbTours'] = isset($_POST['nbTours']) ? $_POST['nbTours'] : NULL;
@@ -96,9 +93,13 @@ switch ($action){
         break;
     case "ajouterDecor":
         $nomElement = isset($_POST['nomElement']) ? $_POST['nomElement'] : NULL;
+        if ($nomElement == "porte"){
+            $champsConcernes = isset($_POST['champsConcernes']) ? $_POST['champsConcernes'] : NULL;
+            echo "c'est une porte ! ".$champsConcernes;
+        }
         $nomTableau = isset($_SESSION['nomTableau']) ? $_SESSION['nomTableau'] : NULL;
         $cellule = isset($_POST['cellule']) ? $_POST['cellule'] : NULL;
-        if (ajoutElementDecor($nomElement,$nomTableau,$cellule) == true){
+        if (ajoutElementDecor($nomElement,$nomTableau,$cellule) == false){
             echo "<div class='alert alert-success'><span class='glyphicon glyphicon-ok'></span> <strong>Réussite !</strong><br/>L'élément à bien été ajouté.</div>";
         }else{
             echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Avertissement !</strong><br/>L'élément n'a pas été ajouté car il existe déjà !</div>";
