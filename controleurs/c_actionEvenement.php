@@ -14,7 +14,9 @@ switch ($action){
     case "supprimerEvenement":
         $numeroPropriete = isset($_POST['numeroPropriete']) ? $_POST['numeroPropriete'] : NULL;
         echo "ATTENTION BUG : la suppression laisse derrière elle 2 ligne '-----', ce qui est faux !. A corriger au possible.";
-        supprimerPropriete($numeroPropriete);
+        echo "num propriete = ".$numeroPropriete;
+        $erreur = supprimerPropriete($numeroPropriete);
+        //gestionErreur($natureAction, $erreur);
         break;
 }
 

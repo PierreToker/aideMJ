@@ -10,7 +10,6 @@ $uc = $_REQUEST['uc'];
 switch ($uc){
     case "accueil":
         $_SESSION['connecter'] = true;
-        
         $resultat = connaitreTableau("tous","");
         $_SESSION['lesPlateaux'] = getTousPlateaux();
         include("vues/accueil.php");

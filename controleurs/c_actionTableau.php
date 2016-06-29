@@ -16,12 +16,11 @@ switch ($action){
         foreach ($lesProprietes as $unePropriete){
             switch(true){
                 case stristr($unePropriete,'lenom='):
-                    $numeroPropriete = substr($unePropriete,6);
+                    $numeroPropriete = trim(substr(strstr($unePropriete,'='),1));
                     break;
                 case stristr($unePropriete,'titre='):
                     $rest = substr($unePropriete,6);
                     array_push($lesProprietesRecuperer,"<option value='$numeroPropriete'>$rest</option>");
-                    $numeroPropriete = "";
                     break;
             }
         }
@@ -53,7 +52,7 @@ switch ($action){
         $_SESSION['nomTableau'] = isset($_REQUEST['nomTableau']) ? $_REQUEST['nomTableau'] : $_SESSION['nomTableau'];
         $nomTableau = str_replace(" ", "_", $_SESSION['nomTableau']);
         $numeroTableau = connaitreTableau("connaitreNumeroTableau",$nomTableau);
-        if ($numeroTableau == 0){
+        if ($numeroTableau != 0){
             echo "<div class='alert alert-danger'><span class='glyphicon glyphicon-remove'></span> <strong>Erreur</strong><br/>Le tableau ne peut pas étre créé, ce nom est déjà attribué à un autre tableau.</div>";
         }else{
             constructionNouveauTableau($colonne,$ligne,$nomTableau,$numeroPlateau,$sensPlateau,$numeroTableau);

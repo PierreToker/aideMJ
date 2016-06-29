@@ -14,9 +14,10 @@ function chercherUnePropriete($codePropriete,$action){
                 while (($buffer = fgets($fichier)) !== false) {
                     if ($check == true){
                         ++$i;
-                        if ($i == 4){
+                        if ($i == 3){
                             $buffer = substr($buffer, 6);
                             $resultat = $buffer;
+                            break;
                         }
                     }
                     if(strpos($buffer, "lenom=".$codePropriete) !== false) {
@@ -125,7 +126,7 @@ function rechercheDansFichierProprietes($codePropriete){
 
 // --- supprimerPropriete ---
 // Parcourt le fichier (propriete.txt) à la recherche de la propriété à supprimer
-// Demande 2 String (1 = code du tableau + code de la propriété (concaténé au préalable), 1 = le chemin du tableau voulu)
+// Demande 1 String (1 = code du tableau + code de la propriété (concaténé au préalable)
 function supprimerPropriete($numeroPropriete){
     $cheminFichier = "../aideMJ/ressources/Proprietes/proprietes.txt";
     $aSupprimer = false;
