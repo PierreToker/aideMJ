@@ -9,10 +9,15 @@ if(!isset($_REQUEST['uc'])){
 $uc = $_REQUEST['uc'];
 switch ($uc){
     case "accueil":
-        $_SESSION['connecter'] = true;
         $resultat = connaitreTableau("tous","");
         $_SESSION['lesPlateaux'] = getTousPlateaux();
         include("vues/accueil.php");
+        break;
+    case "genererTableauDepuisIndex":
+        $nomTableau = isset($_POST['nomTableau']) ? $_POST['nomTableau'] : NULL;
+        $_SESSION['nomTableau'] = str_replace(" ","_",$nomTableau);
+        $_SESSION['combienTableau'] = connaitreTableau("combienTableau",$_SESSION['nomTableau']);
+        include("controleurs/c_actionTableau.php");
         break;
     case "genererTableau":
         include("controleurs/c_actionTableau.php");

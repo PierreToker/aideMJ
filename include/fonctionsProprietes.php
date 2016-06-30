@@ -14,7 +14,7 @@ function chercherUnePropriete($codePropriete,$action){
                 while (($buffer = fgets($fichier)) !== false) {
                     if ($check == true){
                         ++$i;
-                        if ($i == 3){
+                        if ($i == 4){
                             $buffer = substr($buffer, 6);
                             $resultat = $buffer;
                             break;
@@ -66,7 +66,7 @@ function ajouterNouveauEvenement($titreEvenement,$descriptionEvenement,$nbTours,
         }
         fseek($fichier, 0, SEEK_END);
         fputs($fichier,"\r\n");
-        fputs($fichier,'lenom=p'.$i."\r\ntitre=".$titreEvenement."\r\ndescr=".$descriptionEvenement."\r\neffet=".$effet."\r\nnTour=".$nbTours."\r\n-------------------");
+        fputs($fichier,'lenom=p'.$i."\r\ntitre=".$titreEvenement."\r\ndescr=".$descriptionEvenement."\r\neffet=".$effet."\r\nnTour=".$nbTours."\r\n-----");
         $resultat = false;
     }
     fclose($fichier);

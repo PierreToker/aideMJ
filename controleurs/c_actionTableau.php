@@ -5,13 +5,14 @@ if(!isset($_REQUEST['action'])){
 $action = $_REQUEST['action'];
 switch ($action){
     case "genererTableau":
-        $_SESSION['nomTableau'] = isset($_REQUEST['nomTableau']) ? $_REQUEST['nomTableau'] : $_SESSION['nomTableau'];
-        $_SESSION['nomTableau'] = str_replace(" ", "_", $_SESSION['nomTableau']);
         $_SESSION['nbTours'] = determinerTour("../aideMJ/ressources/Maps/".$_SESSION['nomTableau']."/compteurTours.txt");
         $evenementsActifs = determinerEvenementCeTour($_SESSION['nbTours'],$_SESSION['nomTableau']);
-        $i = 0;
-        $monTableau = array(1 => "monTableau1", 2=> "monTableau2");
-        $lesProprietesRecuperer = array();
+        $numeroPlateau = 0;
+        $lesProprietesRecuperer = array(); $monTableau = array();
+        $tailleArray = sizeof($_SESSION['combienTableau']);
+        for ($i = 1; $i > $tailleArray ; $i++){
+            $monTableau[$i] = "monTableau".$i;
+        }
         $lesProprietes = getToutesLesProprietes();
         foreach ($lesProprietes as $unePropriete){
             switch(true){
@@ -24,8 +25,8 @@ switch ($action){
                     break;
             }
         }
-        foreach (connaitreTableau("combienTableau", $_SESSION['nomTableau']) as $unTableau){
-            ++$i;
+        foreach ($_SESSION['combienTableau'] as $unTableau){
+            ++$numeroPlateau;
             $cheminTableau = "../aideMJ/ressources/Maps/".$_SESSION['nomTableau']."/".$unTableau;
             $fichier = fopen($cheminTableau,"r");
             if ($fichier){
@@ -38,7 +39,7 @@ switch ($action){
                     break;
                 }
             }
-            $monTableau[$i] = constructionTableau($colonne,$ligne,$imageFond,$cheminTableau,$sensPlateau);
+            $monTableau[$numeroPlateau] = constructionTableau($colonne,$ligne,$imageFond,$cheminTableau,$sensPlateau,$numeroPlateau);
             fclose($fichier);
         }
         include ("vues/tableauGenerer.php");

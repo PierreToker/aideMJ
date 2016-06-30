@@ -19,7 +19,7 @@
     <input type="submit" value="Valider">
 </form><br/>
 <h4>Selectionner un tableau déjà existant</h4>
-<form method='POST' action='index.php?uc=genererTableau&action=genererTableau'>
+<form method='POST' action='index.php?uc=genererTableauDepuisIndex&action=genererTableau'>
     <select name="nomTableau"><?php
         foreach ($resultat as $unElement){
             echo "<option value='$unElement'>$unElement</option>";
