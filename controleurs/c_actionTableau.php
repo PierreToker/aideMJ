@@ -7,40 +7,19 @@ switch ($action){
     case "genererTableau":
         $_SESSION['nbTours'] = determinerTour("../aideMJ/ressources/Maps/".$_SESSION['nomTableau']."/compteurTours.txt");
         $evenementsActifs = determinerEvenementCeTour($_SESSION['nbTours'],$_SESSION['nomTableau']);
-        $numeroPlateau = 0;
+        //$numeroPlateau = 0;
         $lesProprietesRecuperer = array(); $monTableau = array();
-        $tailleArray = sizeof($_SESSION['combienTableau']);
-        for ($i = 1; $i > $tailleArray ; $i++){
-            $monTableau[$i] = "monTableau".$i;
-        }
-        $lesProprietes = getToutesLesProprietes();
-        foreach ($lesProprietes as $unePropriete){
-            switch(true){
-                case stristr($unePropriete,'lenom='):
-                    $numeroPropriete = trim(substr(strstr($unePropriete,'='),1));
-                    break;
-                case stristr($unePropriete,'titre='):
-                    $rest = substr($unePropriete,6);
-                    array_push($lesProprietesRecuperer,"<option value='$numeroPropriete'>$rest</option>");
-                    break;
-            }
-        }
-        foreach ($_SESSION['combienTableau'] as $unTableau){
-            ++$numeroPlateau;
-            $cheminTableau = "../aideMJ/ressources/Maps/".$_SESSION['nomTableau']."/".$unTableau;
-            $fichier = fopen($cheminTableau,"r");
-            if ($fichier){
-                while (($buffer = fgets($fichier)) !== false) { 
-                    $dimension = explode("_", $buffer);
-                    $imageFond = $dimension[0];
-                    $sensPlateau = $dimension[1];
-                    $colonne = $dimension[2];
-                    $ligne = $dimension[3];
-                    break;
-                }
-            }
-            $monTableau[$numeroPlateau] = constructionTableau($colonne,$ligne,$imageFond,$cheminTableau,$sensPlateau,$numeroPlateau);
-            fclose($fichier);
+//        $tailleArray = sizeof($_SESSION['combienTableau']);
+//        for ($i = 1; $i > $tailleArray ; $i++){
+//            $monTableau[$i] = "monTableau".$i;
+//        }
+//        $lesProprietes = getToutesLesProprietesXML();
+//        foreach ($lesProprietes as $unePropriete){
+//            array_push($lesProprietesRecuperer,"<option value='$unePropriete->id'>$unePropriete->titre</option>");
+//        }
+        $lesPlateaux = getParametresTableau($_SESSION['nomTableau'],$_SESSION['combienTableau']);
+        Foreach ($lesPlateaux as $unPlateau){
+            $monTableau[$unPlateau->id] = constructionTableau($nomTableau,$unPlateau);
         }
         include ("vues/tableauGenerer.php");
         break;

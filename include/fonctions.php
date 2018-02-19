@@ -1,4 +1,12 @@
+<script>
+var lesProprietes, lesEvenements;
+</script>
 <?php
+require realpath("modeles/tableau.php");
+require realpath("modeles/propriete.php");
+require realpath("modeles/evenement.php");
+require realpath("modeles/decoration.php");
+
 // --- constructionNouveauTableau ---
 // Construit le tableau souhaité par l'utilisateur dans un fichier txt quand la map n'existe pas
 // Demande 2 Int (1= la longueur du tableau ET 1 = largeur du tableau) et 1 String (1= le nom de la map)
@@ -22,98 +30,102 @@ function constructionNouveauTableau($colonne,$ligne,$nomTableau,$numeroPlateau,$
     }
 }
 
+function instanciation(){
+    $GLOBALS['lesProprietes'] = (array) getToutesLesProprietesXML();
+    getLesEvenementsXML($_SESSION['nomTableau']);  
+    //echo "<pre>"; print_r($GLOBALS['lesDecorations']);
+    ?>
+    <script>
+        var lesProprietes = <?php echo json_encode($GLOBALS['lesProprietes']);?>;
+        var lesEvenements = <?php echo json_encode($GLOBALS['lesEvenements']); ?>;
+    </script>
+    <?php
+}
+
 // --- constructionTableau ---
 // Construit le tableau souhaité par l'utilisateur
 // Demande 2 Int (1= la longueur du tableau ET 1 = largeur du tableau)
 // Retourne un Array (le tableau à reconstuire avec 1 Foreach)
-function constructionTableau($colonne,$ligne,$imageFond,$cheminTableau,$sensPlateau,$numeroPlateau){
-    $tableau = array(); $lesEvements = array();
+function constructionTableau($nomTableau,$unPlateau){
+    $cheminPlateau = "../aideMJ/ressources/Maps/".$nomTableau."/tableau_".$unPlateau->id.".xml";
+    $tableau = array(); 
     $lettre = 'a';
-    $lesProprietes = getToutesLesProprietes();
-    $lesEvements = getLesEvenements($_SESSION['nomTableau']);
+    instanciation();
+    $lesProprietes = $GLOBALS['lesProprietes'];
+    $lesEvenements = $GLOBALS['lesEvenements'];
     $lesElementsDecors = getLesDecors($_SESSION['nomTableau']);
-    $fichier = fopen($cheminTableau,"r"); 
-    $tableau[0] = "<div class='dropdown' style='position:absolute;z-index:2;'><table border='3' class='rotation_$sensPlateau'>";
-    for($i=0;$i<$ligne;$i++){
-        if($i != 0)
+    //$fichier = fopen($cheminTableau,"r"); 
+    $tableau[0] = "<div class='dropdown' style='position:absolute;z-index:2;'><table border='3' class='rotation_$unPlateau->sens'>";
+    for($i=0;$i<$unPlateau->ligne;$i++){
+        if($i != 0){
             ++$lettre;
+        }
         $tableau[count($tableau)+1] = "<tr>";
-        for($x=0;$x<$colonne;$x++){
+        for($x=0;$x<$unPlateau->colonne;$x++){
             $elementDecor = "";
-            $position = "t".$numeroPlateau."_".$lettre.$x;
+            $position = "t".$unPlateau->numero."_".$lettre.$x;
             $celluleTableau = array();
             if (array_key_exists($position,$lesElementsDecors))
                 $elementDecor = determinerElementDecor($lesElementsDecors,$position);
             array_push($celluleTableau, $position);
-            $tableau[count($tableau)+1] = "<td id=\"leTD\"><a href='#' data-toggle='dropdown'><section class='blur'><img id='imageBackground' src='../aideMJ/ressources/Images/$imageFond/$imageFond"."$lettre"."$x.jpg' height='70' width='70' onerror=\"this.src='../aideMJ/ressources/Images/default.jpg'\"/></section>$elementDecor</a><ul class='dropdown-menu'>
-                <li><a>$position</a></li>
+            $tableau[count($tableau)+1] = "<td id=\"leTD\"><a href='#' data-toggle='dropdown'><section class='blur'><img id='imageBackground' src='../aideMJ/ressources/Images/$unPlateau->numero/$unPlateau->numero"."$lettre"."$x.jpg' height='70' width='70' onerror=\"this.src='../aideMJ/ressources/Images/default.jpg'\"/></section>$elementDecor</a><ul class='dropdown-menu'>
+                <li><a>$lettre.$x</a></li>
                 <li class='dropdown-header'>Evenement affectant la cellule</li>";
-            if(in_array($position,$lesEvements)){
-            foreach (connaitreTouteProprietes($celluleTableau,$cheminTableau) as $unResultat){
-                foreach ($unResultat as $laPropriete){
-                    $pieces = explode("||", $laPropriete);
-                    $codePropriete = trim($pieces[0]); 
-                    if (!isset($codePropriete))
-                        $codePropriete = "";
-                    $textePropriete = trim($pieces[1]);
-                    $tableau[count($tableau)+1] = "<li><a class='trigger right-caret'>$textePropriete</a>"
+            foreach ($lesEvenements as $evenement){
+                If ($lettre.$x == $evenement->cellule){
+                    $codePropriete = $evenement->codeEvenement;
+                    //echo "<pre>"; print_r($GLOBALS['lesProprietes']);
+                    $detailEvenement = propriete::chercherPropriete($codePropriete);
+                    $tableau[count($tableau)+1] = "<li><a class='trigger right-caret' onclick=getInformation('".$codePropriete."_".$lettre.$x."');>".$detailEvenement->titre."</a>"
                             . "<ul class='dropdown-menu sub-menu'>"
-                                . "<li>Caractéristiques de l'événement";
-                                        $detailEvenement = chercherUnePropriete($codePropriete,"tous");
+                                . "<li>Caractéristiques de l'événement";                     
+                                        //$detailEvenement = chercherUnePropriete($codePropriete,"tous");
                                         $codeCelluleEtPropriete = $position."_".$codePropriete;
-                                        $demarreQuand = explode("||", determinerDemarreQuand($codeCelluleEtPropriete,$cheminTableau));
-                                        if ($demarreQuand[1] == 0)
-                                            $demarreQuand[1] = "Ce tour-ci uniquement";
-                                        $lesDetails = explode("||", $detailEvenement);
+                                        if ($evenement->demarreQuand = 0){
+                                           $demarreQuand = "Ce tour-ci uniquement";
+                                        }else{
+                                           $demarreQuand = $evenement->demarreQuand;
+                                        }
                                         $tableau[count($tableau)+1] = "<li class='dropdown-header'>Titre de l'événement</li>"
-                                            . "<li>$lesDetails[0]</li>"
+                                            . "<li>".$detailEvenement->titre."</li>"
                                             . "<li class='dropdown-header'>Description de l'événement</li>"
-                                            . "<li>$lesDetails[1]</li>"
+                                            . "<li>".$detailEvenement->description."</li>"
                                             . "<li class='dropdown-header'>Conséquence de l'événement</li>"
-                                            . "<li>$lesDetails[2]</li>"
+                                            . "<li>".$detailEvenement->effet."</li>"
                                             . "<li class='dropdown-header'>Nombre de tours que dure l'événement</li>"
-                                            . "<li><a class='trigger right-caret'>$demarreQuand[1]</a>"
+                                            . "<li><a class='trigger right-caret'>".$detailEvenement->duree."</a>"
                                                 . "<ul class='dropdown-menu sub-menu'><form action='index.php?uc=genererTableau&action=modifierEvementCellule' method='POST'>"
                                                     . "<li>Donner une nouvelle valeur</li>"
                                                     . "<li><input type='number' name='dureeEvenement' min='0' max='1000' required></li>"
                                                 . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button></li>"
-                                                . "<input type='hidden' name='codeCelluleEtPropriete' value='$codeCelluleEtPropriete'><input type='hidden' name='cheminTableau' value='$cheminTableau'><input type='hidden' name='demarreQuand' value='$demarreQuand[0]'></form></ul>"
+                                                . "<input type='hidden' name='codeCelluleEtPropriete' value='$codeCelluleEtPropriete'><input type='hidden' name='cheminTableau' value='$cheminPlateau'><input type='hidden' name='demarreQuand' value='$demarreQuand[0]'></form></ul>"
                                             . "</li>"
                                             . "<li class='dropdown-header'>Quand démarre l'événement ? </li>"
-                                            . "<li><a class='trigger right-caret'>Tour numéro : $demarreQuand[0]</a>"
+                                            . "<li id='".$codePropriete."_".$lettre.$x.".demarreQuand'><a class='trigger right-caret'><span id='".$codePropriete."_".$lettre.$x.".demarreQuand_p'></div></a>"
                                                 . "<ul class='dropdown-menu sub-menu'><form action='index.php?uc=genererTableau&action=modifierEvementCellule' method='POST'>"
                                                 . "<li>Donner une nouvelle valeur</li>"
                                                     . "<li><input type='number' name='demarreQuand' min=".$_SESSION['nbTours']." max='1000' required></li>"
                                                 . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button></li>"
-                                                . "<input type='hidden' name='codeCelluleEtPropriete' value='$codeCelluleEtPropriete'><input type='hidden' name='cheminTableau' value='$cheminTableau'><input type='hidden' name='dureeEvenement' value='$lesDetails[4]'></form></ul>"
+                                                . "<input type='hidden' name='codeCelluleEtPropriete' value='$codeCelluleEtPropriete'><input type='hidden' name='cheminTableau' value='$cheminPlateau'><input type='hidden' name='dureeEvenement' value='.$detailEvenement->duree.'></form></ul>"
                                             . "</li>"
-                                . "<li><a href='#' class='btn btn-primary btn-lg active btn-sm' onclick=\"transfertSuppression('$codePropriete','$position','$cheminTableau')\">Supprimer attribut</a></li>"
+                                . "<li><a href='#' class='btn btn-primary btn-lg active btn-sm' onclick=\"transfertSuppression('$codePropriete','$position','$cheminPlateau')\">Supprimer attribut</a></li>"
                             . "</ul>"
                         . "</li>";
                 }
-            }
             }//onclick du ajout bouton onclick=\"transfertAjout('$position')\"
             $tableau[count($tableau)+1] = "<li><a href='#' role='button' class='trigger right-caret btn btn-primary btn-lg active btn-sm'>Ajouter un événement</a>"
                                 . "<ul class='dropdown-menu sub-menu'><form action='index.php?uc=genererTableau&action=ajouterEvementCellule' method='POST'>"
                                     . "<li><a class='dropdown-header'>Choisir l'événement à ajouter</a></li>"
                                     . "<li><select name='titreEvenement'>";
+                                   // echo "<pre>";print_r($lesProprietes);
                                     foreach ($lesProprietes as $unePropriete){
-                                        switch(true){
-                                        case stristr($unePropriete,'lenom='):
-                                            $numeroPropriete = $unePropriete."||".$position;
-                                            break;
-                                        case stristr($unePropriete,'titre='):
-                                            $rest = substr($unePropriete,6);
-                                            $tableau[count($tableau)+1] =  "<option value='$numeroPropriete'>$rest</option>";
-                                            $numeroPropriete = "";
-                                            break;
-                                        }
+                                        $tableau[count($tableau)+1] =  "<option value='$unePropriete->codePropriete'>$unePropriete->titre</option>";
                                     }
             $tableau[count($tableau)+1] = "</select></li><br/>"
                                     . "<li><a class='dropdown-header'>A quelle tour commencera l'événément</a></li>"
                                     . "<li><input type='number' name='quand' min=".$_SESSION['nbTours']." max='1000' required></li>"
                                     . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>"
-                                . "<input type='hidden' name='cheminTableau' value='$cheminTableau'></form></ul><br/>"
+                                . "<input type='hidden' name='cheminTableau' value='$cheminPlateau'></form></ul><br/>"
                             . "</li>"
                         . "<li><a href='#' role='button' class='trigger right-caret btn btn-primary btn-lg active btn-sm'>Ajouter un élément du décor</a>"
                         . "<ul class='dropdown-menu sub-menu'><form action='index.php?uc=genererTableau&action=ajouterDecor' method='POST'>"
@@ -128,10 +140,10 @@ function constructionTableau($colonne,$ligne,$imageFond,$cheminTableau,$sensPlat
                             . "<li><button class='btn btn-primary btn-sm' type='submit'>Valider</button>"
                         . "<input type='hidden' name='cellule' value='$position'></form></ul></li></ul></td>"; 
         }
-        $tableau[count($tableau)+1] = "</tr>";
+        $tableau[count($tableau)+1] = "</tr>";    
     }
     $tableau[count($tableau)+1] = "</table></form>";
-    fclose($fichier);
+   // fclose($fichier);
     return $tableau;
 }
 
@@ -178,6 +190,8 @@ function construireTableauFichier($colonne,$ligne,$cheminTableau,$numeroPlateau,
     fclose($fichier);
 }
 
+
+
 // --- ajoutProprietesCellule ---
 // Parcourt le fichier (tableau.txt) pour implémenter la nouvelle propriété, gére les doublons
 // Demande 1 Array contenant le nom de l'événement (ex: p0) et la celulle du tableau (ex: t1_a0) et 1 String (le chemin du tableau)
@@ -190,6 +204,7 @@ function ajoutProprietesCellule($lenomEvenement,$cheminTableau,$quand){
     $nbTours = chercherUnePropriete($lenomEvenement,"sonTemps");
     $celluleTableau = $pieces[1]; 
     $celluleEtEvenement = $celluleTableau."_".$lenomEvenement;
+    echo $cheminTableau;
     $fichier = fopen($cheminTableau,"r+");
     array_push($contenuApres,"\n");
     if ($fichier){
@@ -526,20 +541,21 @@ function ajoutElementDecor($nomElement,$nomTableau,$cellule){
 // Donne tous les décors attribué au tableau
 // Demande un String (le chemin qui mène au tableau
 // Retour un Array des éléments du décors (arbre, pilier...)
-function getLesDecors($nomTableau){
-    $lesElements = array();
-    $cheminTableau = "../aideMJ/ressources/Maps/".$nomTableau."/elementsDecor.txt";
-    $fichier = fopen($cheminTableau,"r");
-    if ($fichier){
-        while(($buffer = fgets($fichier)) !== false) {
-            $resultat = explode("_",$buffer);
-            $lesElements[$resultat[0]."_".$resultat[1]] = $resultat[2];
-        }
-    }
-    fclose($fichier);
-    return $lesElements;
-}
+//function getLesDecors($nomTableau){
+//    $lesElements = array();
+//    $cheminTableau = "../aideMJ/ressources/Maps/".$nomTableau."/elementsDecor.txt";
+//    $fichier = fopen($cheminTableau,"r");
+//    if ($fichier){
+//        while(($buffer = fgets($fichier)) !== false) {
+//            $resultat = explode("_",$buffer);
+//            $lesElements[$resultat[0]."_".$resultat[1]] = $resultat[2];
+//        }
+//    }
+//    fclose($fichier);
+//    return $lesElements;
+//}
 
+//Détermine la décoration sur la case (arbre, piège, etc.)
 function determinerElementDecor($lesElementsDecors,$positionDansTableau){
     switch(trim($lesElementsDecors[$positionDansTableau])){
         case "arbre":
@@ -581,15 +597,61 @@ function gestionErreur($natureAction,$erreur){
     header('Refresh:2;url=index.php?uc=genererTableau&action=genererTableau');
 }
 
-function getLesEvenements($nomTableau){
-    $cheminTableau = "../aideMJ/ressources/Maps/".$nomTableau."/tableau_1.txt";
-    $fichier = file($cheminTableau); 
-    $lesEvenements = array();
-    foreach($fichier as $buffer){
-        if (isset($buffer[8])){ //equivalant à strlen($buffer) > 8
-            array_push($lesEvenements,substr($buffer,0,5));
+//Instancie les événements de chaque cellule
+function getLesEvenementsXML($nomTableau){
+    $cheminTableau = "../aideMJ/ressources/Maps/".$nomTableau."/tableau_0.xml";
+    $lesEvenements = array(); $lesDecorations = array();
+    $xml = simplexml_load_file($cheminTableau);
+    $children = $xml->lesCellules->children();
+    foreach($children as $child) {
+       // echo "<pre>"; print_r($child);
+        $i = 0;
+        foreach($child as $value) {
+            if ($i != 0){
+                $code = (string) $value->attributes()->id;
+                $cellule = (string) $child->attributes()->id;
+                $unEvenement = new evenement($code,$cellule,(string) $value->tourDebute);
+                //$unEvenement = new evenement($laPropriete->id,$laPropriete->titre, $laPropriete->description, $laPropriete->duree, $laPropriete->multiCellule,$cellule,$value->tourDebute);
+                $lesEvenements[] = $unEvenement;
+            }else{
+                $codeCellule = (string) $value->attributes()->id;
+                $uneDecoration = new decoration('0',$codeCellule,$value->type);
+                $lesDecorations[] = $uneDecoration;
+            }
+            $i++;
+        }
+        $GLOBALS['lesEvenements'] = (array) new ArrayObject($lesEvenements);
+        $GLOBALS['lesDecorations'] = (array) new ArrayObject($lesDecorations);
+    }
+}
+
+//Instancie les proprietes des tableaux de la carte
+function getParametresTableau($nomTableau,$combienTableau){
+    foreach($combienTableau as $unTableau){
+        $cheminTableau = "../aideMJ/ressources/Maps/".$nomTableau."/".$unTableau;
+        $xml = simplexml_load_file($cheminTableau);
+        $children = $xml->proprietes->children();
+        $i = 0;
+        $tableau = new tableau($i,$children->numero,$children->sens,$children->colonne,$children->ligne);
+        $lesTableaux[] = $tableau;
+        $i++;
+        
+    }
+    return new ArrayObject($lesTableaux); 
+}
+
+?>
+<script>
+    function getInformation(positionCellule){
+        var positionCellule = positionCellule.concat('.demarreQuand_p');
+        var codePropriete = positionCellule.split("_");
+        
+        for(var i = 0, l = lesEvenements.length; i < l; i++){
+            //alert("Si : " + lesEvenements[i]['codeEvenement'] + " = " + codePropriete[0]);
+            if(lesEvenements[i]['codeEvenement'] = codePropriete[0]){
+                document.getElementById(positionCellule).innerHTML = "Tour : " +lesEvenements[i]['demarreQuand'];
+                stop;
+            }
         }
     }
-    return $lesEvenements;
-}
-?>
+</script>        

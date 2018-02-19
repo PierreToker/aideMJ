@@ -1,3 +1,4 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 <?php
 require_once ("include/fonctions.php");
 require_once ("include/fonctionsProprietes.php");

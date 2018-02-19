@@ -98,6 +98,25 @@ function getToutesLesProprietes(){
     return $lesProprietes;
 }
 
+function getToutesLesProprietesXML(){
+    $xml = simplexml_load_file("../aideMJ/ressources/Proprietes/proprietes.xml");
+    //echo "<pre>";    print_r($xml);
+    foreach($xml as $child) {
+        //echo $child->attributes();
+        $code = (string) $child->attributes()->id;
+        if ($child->multiCellule->children()){
+            $axe_x = $child->multiCellule->axe_x;
+            $axe_y = $child->multiCellule->axe_y;
+        }else{
+            $axe_x = null; $axe_y = null;
+        }
+        $laPropriete = new propriete($code,$child->titre,$child->description,$child->effet,$child->duree,$child->nomImage,$axe_x,$axe_y);
+        $lesProprietes[] = $laPropriete;
+    }
+    $proprieteObjet = new ArrayObject($lesProprietes);
+    return $proprieteObjet; 
+}
+
 // --- rechercheDansFichierProprietes ---
 // Parcourt un fichier à la recherche des proprietes dans le fichier proprietes.txt
 // Demande 1 String (= le code de la propriété)
