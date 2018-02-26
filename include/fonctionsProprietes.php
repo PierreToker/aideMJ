@@ -3,50 +3,50 @@
 // Sert à connaitre la durée d'un événement 
 // Demande un String (1 = le code de la propriete)
 // Retourne un String ((son temps = la durée de l'événément) ou (tous = tous les éléments d'une propriété))
-function chercherUnePropriete($codePropriete,$action){
-    $check = false;
-    $i = 0;
-    $resultat = "";
-    $fichier = fopen("../aideMJ/ressources/Proprietes/proprietes.txt","r");
-    if ($fichier){
-        switch ($action){
-            case "sonTemps":
-                while (($buffer = fgets($fichier)) !== false) {
-                    if ($check == true){
-                        ++$i;
-                        if ($i == 4){
-                            $buffer = substr($buffer, 6);
-                            $resultat = $buffer;
-                            break;
-                        }
-                    }
-                    if(strpos($buffer, "lenom=".$codePropriete) !== false) {
-                        $check = true;
-                    }
-                }
-                break;
-            case "tous":
-                while (($buffer = fgets($fichier)) !== false) {
-                    if ($check == true){
-                        ++$i;
-                        $buffer = substr($buffer, 6);
-                        $resultat = $resultat.$buffer."||";
-                        if ($i == 4){
-                            break;
-                        }
-                    }
-                    if(strpos($buffer, "lenom=".$codePropriete) !== false) {
-                        $check = true;
-                    }
-                }
-                break;
-            default:
-                echo "Erreur lors de la selection du mode de lecture dans la fonction chercherUnePropriete()";
-        }
-    }
-    fclose($fichier);  
-    return $resultat;
-}
+//function chercherUnePropriete($codePropriete,$action){
+//    $check = false;
+//    $i = 0;
+//    $resultat = "";
+//    $fichier = fopen("../aideMJ/ressources/Proprietes/proprietes.txt","r");
+//    if ($fichier){
+//        switch ($action){
+//            case "sonTemps":
+//                while (($buffer = fgets($fichier)) !== false) {
+//                    if ($check == true){
+//                        ++$i;
+//                        if ($i == 4){
+//                            $buffer = substr($buffer, 6);
+//                            $resultat = $buffer;
+//                            break;
+//                        }
+//                    }
+//                    if(strpos($buffer, "lenom=".$codePropriete) !== false) {
+//                        $check = true;
+//                    }
+//                }
+//                break;
+//            case "tous":
+//                while (($buffer = fgets($fichier)) !== false) {
+//                    if ($check == true){
+//                        ++$i;
+//                        $buffer = substr($buffer, 6);
+//                        $resultat = $resultat.$buffer."||";
+//                        if ($i == 4){
+//                            break;
+//                        }
+//                    }
+//                    if(strpos($buffer, "lenom=".$codePropriete) !== false) {
+//                        $check = true;
+//                    }
+//                }
+//                break;
+//            default:
+//                echo "Erreur lors de la selection du mode de lecture dans la fonction chercherUnePropriete()";
+//        }
+//    }
+//    fclose($fichier);  
+//    return $resultat;
+//}
 
 // --- ajouterNouveauEvenement ---
 // Ajoute l'événement voulue par l'utilisateur sur le fichier (proprietes.txt), gére l'encodage UTF-8
@@ -104,16 +104,11 @@ function getToutesLesProprietesXML(){
     foreach($xml as $child) {
         //echo $child->attributes();
         $code = (string) $child->attributes()->id;
-        if ($child->multiCellule->children()){
-            $axe_x = $child->multiCellule->axe_x;
-            $axe_y = $child->multiCellule->axe_y;
-        }else{
-            $axe_x = null; $axe_y = null;
-        }
-        $laPropriete = new propriete($code,$child->titre,$child->description,$child->effet,$child->duree,$child->nomImage,$axe_x,$axe_y);
+        $laPropriete = new propriete($code,$child->titre,$child->description,$child->effet,$child->duree,$child->nomImage);
         $lesProprietes[] = $laPropriete;
     }
     $proprieteObjet = new ArrayObject($lesProprietes);
+   // echo "<pre>";    print_r($proprieteObjet);
     return $proprieteObjet; 
 }
 

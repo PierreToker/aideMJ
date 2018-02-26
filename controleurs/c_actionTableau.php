@@ -2,11 +2,12 @@
 if(!isset($_REQUEST['action'])){
     $_REQUEST['action'] = 'genererTableau';
 }
+instanciation();
 $action = $_REQUEST['action'];
 switch ($action){
     case "genererTableau":
         $_SESSION['nbTours'] = determinerTour("../aideMJ/ressources/Maps/".$_SESSION['nomTableau']."/compteurTours.txt");
-        $evenementsActifs = determinerEvenementCeTour($_SESSION['nbTours'],$_SESSION['nomTableau']);
+        $evenementsActifs = determinerEvenementCeTour();
         //$numeroPlateau = 0;
         $lesProprietesRecuperer = array(); $monTableau = array();
 //        $tailleArray = sizeof($_SESSION['combienTableau']);
@@ -87,4 +88,14 @@ switch ($action){
         break;
     default :
         echo "<br/>Rien selectionné dans le controleur 'c_actionTableau' !<br/>"; 
+}
+
+function instanciation(){
+    $GLOBALS['lesProprietes'] = (array) getToutesLesProprietesXML();
+    getLesEvenementsXML($_SESSION['nomTableau']);  
+    ?>
+    <script>
+        var lesProprietes = <?php echo json_encode($GLOBALS['lesProprietes']);?>;
+        var lesEvenements = <?php echo json_encode($GLOBALS['lesEvenements']); ?>;
+    </script><?php
 }

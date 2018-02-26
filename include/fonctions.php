@@ -1,5 +1,5 @@
 <script>
-var lesProprietes, lesEvenements;
+    var lesProprietes, lesEvenements;
 </script>
 <?php
 require realpath("modeles/tableau.php");
@@ -30,17 +30,15 @@ function constructionNouveauTableau($colonne,$ligne,$nomTableau,$numeroPlateau,$
     }
 }
 
-function instanciation(){
-    $GLOBALS['lesProprietes'] = (array) getToutesLesProprietesXML();
-    getLesEvenementsXML($_SESSION['nomTableau']);  
-    //echo "<pre>"; print_r($GLOBALS['lesDecorations']);
-    ?>
+//function instanciation(){
+//    $GLOBALS['lesProprietes'] = (array) getToutesLesProprietesXML();
+//    getLesEvenementsXML($_SESSION['nomTableau']);  
+//    ?>
     <script>
         var lesProprietes = <?php echo json_encode($GLOBALS['lesProprietes']);?>;
         var lesEvenements = <?php echo json_encode($GLOBALS['lesEvenements']); ?>;
-    </script>
-    <?php
-}
+    </script><?php
+//}
 
 // --- constructionTableau ---
 // Construit le tableau souhaité par l'utilisateur
@@ -50,23 +48,59 @@ function constructionTableau($nomTableau,$unPlateau){
     $cheminPlateau = "../aideMJ/ressources/Maps/".$nomTableau."/tableau_".$unPlateau->id.".xml";
     $tableau = array(); 
     $lettre = 'a';
-    instanciation();
+    //instanciation();
     $lesProprietes = $GLOBALS['lesProprietes'];
     $lesEvenements = $GLOBALS['lesEvenements'];
-    $lesElementsDecors = getLesDecors($_SESSION['nomTableau']);
-    //$fichier = fopen($cheminTableau,"r"); 
+    $lesElementsDecors = $GLOBALS['lesDecorations'];
+    $barriere = max($lesElementsDecors[max(array_keys($lesElementsDecors))]->codeCellule,$lesEvenements[max(array_keys($lesEvenements))]->cellule);
+   // echo "<pre>"; print_r($lesElementsDecors);
     $tableau[0] = "<div class='dropdown' style='position:absolute;z-index:2;'><table border='3' class='rotation_$unPlateau->sens'>";
     for($i=0;$i<$unPlateau->ligne;$i++){
-        if($i != 0){
-            ++$lettre;
-        }
+        if($i != 0){ ++$lettre; }
         $tableau[count($tableau)+1] = "<tr>";
         for($x=0;$x<$unPlateau->colonne;$x++){
             $elementDecor = "";
-            $position = "t".$unPlateau->numero."_".$lettre.$x;
+            $position = "t".$unPlateau->numero.$lettre.$x;
             $celluleTableau = array();
-            if (array_key_exists($position,$lesElementsDecors))
-                $elementDecor = determinerElementDecor($lesElementsDecors,$position);
+            $estDecoration = false;
+            If($barriere >= $lettre.$x){
+                $evenement = evenement::chercherEvenement($lettre.$x);
+                if (isset($evenement)){  
+                    $decoration = propriete::chercherPropriete($evenement->codeEvenement);
+                    if ($evenement->axe_x != NULL && $evenement->axe_y != null){
+                        echo "<pre>"; print_r($evenement);
+                        $axe_x = str_split($evenement->axe_x,1); 
+                        $axe_y = str_split($evenement->axe_y,1); 
+                        $multiCellule[0] = $axe_x[0];
+                        $multiCellule[1] = $axe_x[1];
+                        $multiCellule[2] = $axe_y[0];
+                        $multiCellule[3] = $axe_y[1];
+                        $multiCellule[4] = $decoration->nomImage;
+                        $nomDecoration = $decoration->nomImage;
+                    }
+                    $nomDecoration = $decoration->nomImage;
+                    $elementDecor = "<div id='premierPlan'><img id='piege' src='../aideMJ/ressources/Images/piege/".$nomDecoration.".png' width='70' height='60' style='margin-top: -65px;'/></div>";
+                }else{
+                    foreach($GLOBALS['lesDecorations'] as $unElement){
+                        if ($unElement->tableau = "t".$unPlateau->numero){
+                            if ($unElement->codeCellule == $lettre.$x){    
+                                $estDecoration = true;
+                                $elementDecor = "<div id='premierPlan'><img id='decoration' src='../aideMJ/ressources/Images/decoration/".$unElement->type.".png' width='70' height='70' style='margin-top: -70px;'/></div>";
+                                break;
+                            }
+                        }
+                    }
+                }
+                if ($multiCellule[0] <= $lettre && $estDecoration == false){
+                    if ($multiCellule[1] <= $x){
+                        if ($multiCellule[2] >= $lettre){
+                            if ($multiCellule[3] >= $x){
+                                $elementDecor = "<div id='premierPlan'><img id='decoration' src='../aideMJ/ressources/Images/piege/".$multiCellule[4].".png' width='70' height='70' style='margin-top: -70px;'/></div>";          
+                            }
+                        }
+                    }
+                }
+            }
             array_push($celluleTableau, $position);
             $tableau[count($tableau)+1] = "<td id=\"leTD\"><a href='#' data-toggle='dropdown'><section class='blur'><img id='imageBackground' src='../aideMJ/ressources/Images/$unPlateau->numero/$unPlateau->numero"."$lettre"."$x.jpg' height='70' width='70' onerror=\"this.src='../aideMJ/ressources/Images/default.jpg'\"/></section>$elementDecor</a><ul class='dropdown-menu'>
                 <li><a>$lettre.$x</a></li>
@@ -81,7 +115,7 @@ function constructionTableau($nomTableau,$unPlateau){
                                 . "<li>Caractéristiques de l'événement";                     
                                         //$detailEvenement = chercherUnePropriete($codePropriete,"tous");
                                         $codeCelluleEtPropriete = $position."_".$codePropriete;
-                                        if ($evenement->demarreQuand = 0){
+                                        if ($evenement->demarreQuand == 0){
                                            $demarreQuand = "Ce tour-ci uniquement";
                                         }else{
                                            $demarreQuand = $evenement->demarreQuand;
@@ -346,20 +380,20 @@ function rechercheDansFichierCelluleProprietes($uneCellule,$cheminTableau){
 // Sert à connaitre les proprietes d'une cellule d'un tableau
 // Demande un Array
 // Retourne un Array dans un array (un tableau de cellule contenant les proprietes par cellule)
-function connaitreTouteProprietes($codeCellule,$cheminTableau){ 
-    $lesProprietesDuTableau = array();
-    $lesProprietes = array();
-    $lescodeProprietes = array();
-    foreach($codeCellule as $uneCellule){ //On va connaitre les codeProprietes d'une cellule
-        array_push($lesProprietesDuTableau, rechercheDansFichierCelluleProprietes($uneCellule,$cheminTableau)); 
-    }
-    foreach ($lesProprietesDuTableau as $uneCelluleTableau) { //On va connaitre les attributs d'une cellule grace à un codeProprietes
-        foreach ($uneCelluleTableau as $uneProprietesTableau){  
-            array_push($lesProprietes, rechercheDansFichierProprietes($uneProprietesTableau));
-        }
-    }
-    return $lesProprietes;
-}
+//function connaitreTouteProprietes($codeCellule,$cheminTableau){ 
+//    $lesProprietesDuTableau = array();
+//    $lesProprietes = array();
+//    $lescodeProprietes = array();
+//    foreach($codeCellule as $uneCellule){ //On va connaitre les codeProprietes d'une cellule
+//        array_push($lesProprietesDuTableau, rechercheDansFichierCelluleProprietes($uneCellule,$cheminTableau)); 
+//    }
+//    foreach ($lesProprietesDuTableau as $uneCelluleTableau) { //On va connaitre les attributs d'une cellule grace à un codeProprietes
+//        foreach ($uneCelluleTableau as $uneProprietesTableau){  
+//            array_push($lesProprietes, rechercheDansFichierProprietes($uneProprietesTableau));
+//        }
+//    }
+//    return $lesProprietes;
+//}
 
 // --- combienDeTableau ---
 // Sert à connaitre tous les tableaux déjà créé par l'utilisateur
@@ -424,18 +458,18 @@ function connaitreTableau($action,$nomTableau){
 // Permet de connaitre la date de départ d'un événement 
 // Demande un String (1= le code de la cellule du tableau) et une Ressource (le chemin ou se situe le fichier compteurTours.txt))
 // Retourne deux String (1= la date de commencement de l'événement et le nombre de tours qu'il es actif)
-function determinerDemarreQuand($codeCellule,$cheminTableau){
-    $check = false;
-    $fichier = file($cheminTableau); 
-    foreach($fichier as $buffer){
-        if (strpos($buffer, $codeCellule) !== false){
-            $demarreQuand = explode("_", $buffer);
-            $resultat = $demarreQuand[3]."||"; //Démarre quand
-            $resultat = $resultat.$demarreQuand[4]; //Durée en temps
-        }
-    }
-    return $resultat;
-}
+//function determinerDemarreQuand($codeCellule,$cheminTableau){
+//    $check = false;
+//    $fichier = file($cheminTableau); 
+//    foreach($fichier as $buffer){
+//        if (strpos($buffer, $codeCellule) !== false){
+//            $demarreQuand = explode("_", $buffer);
+//            $resultat = $demarreQuand[3]."||"; //Démarre quand
+//            $resultat = $resultat.$demarreQuand[4]; //Durée en temps
+//        }
+//    }
+//    return $resultat;
+//}
 
 // --- determinerTour ---
 // Permet de connaitre le nombre de tours passés
@@ -466,35 +500,21 @@ function incrementerTours($nbTours,$chemin){
 
 // --- determinerEvenementCeTour ---
 // Permet de connaitre les événements qui se déclenchent ce tours-ci
-// Demande un Int (1= le tours (non incrémenté)) et un String (1= le chemin ou se situe le fichier compteurTours.txt)
-function determinerEvenementCeTour($nbTours,$nomTableau){
-    $evenementsActifs = array();
-    try{
-        foreach (connaitreTableau("combienTableau", $nomTableau) as $unTableau){
-            $cheminTableau = "../aideMJ/ressources/Maps/".$nomTableau."/".$unTableau;        
-            $i = 0;
-            $fichier = file($cheminTableau); 
-            foreach($fichier as $buffer){
-                if ($buffer > 5 && $i > 0){
-                    $temps = explode("_", $buffer);
-                    $quandFinira = $temps[3] + $temps[4]; //Démarre quand + Durée en temps
-                    echo "Démarre quand : ".$temps[3]."durée temps : ".$temps[3]."<br/>";
-                    if ($quandFinira < $nbTours){
-                        suppressionProprietesDansCellule($temps[1].$temps[2], $cheminTableau);
-                    }else if ($temps[0] <= $nbTours && $quandFinira >= $nbTours){
-                        $codePropriete = substr($buffer,6,-7);
-                        array_push($evenementsActifs,$codePropriete);
-                    }
-                }
-                if ($i == 0){
-                    ++$i;
-                }
+function determinerEvenementCeTour(){
+    $evenementActifs = array();
+    foreach ($GLOBALS['lesEvenements'] as $unEvenement){
+        if ($unEvenement->demarreQuand == $_SESSION['nbTours']){
+            $EvenementActif = propriete::chercherPropriete($unEvenement->codeEvenement);
+            array_push($evenementActifs,$EvenementActif);
+        } else {
+            $duree = $unEvenement->demarreQuand + propriete::chercherPropriete($unEvenement->codeEvenement)->duree;  
+            If ($duree >= $_SESSION['nbTours']){
+                $EvenementActif = propriete::chercherPropriete($unEvenement->codeEvenement);
+                array_push($evenementActifs,$EvenementActif);
             }
         }
-        return $evenementsActifs;
-    }catch(Exception $e){
-        print_r($e);
     }
+    return $evenementActifs;
 }
 
 // --- getTousPlateaux ---
@@ -556,19 +576,22 @@ function ajoutElementDecor($nomElement,$nomTableau,$cellule){
 //}
 
 //Détermine la décoration sur la case (arbre, piège, etc.)
-function determinerElementDecor($lesElementsDecors,$positionDansTableau){
-    switch(trim($lesElementsDecors[$positionDansTableau])){
-        case "arbre":
-            return $decor = "<div id='premierPlan'><span class='glyphicon glyphicon-tree-deciduous'></div>";          
-            break;
-        case "pilier":
-            return $decor = "<div id='premierPlan'><span class='glyphicon glyphicon-pawn'></div>";          
-            break;
-        case "porte":
-            echo "Porte, pas encore codé !";
-            break;
-    }
-}
+//function determinerElementDecor($typeDecoration,$positionDansTableau){
+//    $decor = null;
+//    switch($typeDecoration){
+//        case "arbre":
+//            //$decor = "glyphicon glyphicon-tree-deciduous";         
+//            break;
+//        case "pilier":
+//            $decor = "<div id='premierPlan'><img id='decoration' src='../aideMJ/ressources/Images/decoration/".$typeDecoration.".png' width='70' height='60' style='margin-top: -65px;'/></div>";
+//            break;
+//        case "porte":
+//            echo "Porte, pas encore codé !";
+//            break;
+//    }
+//    $decor = "<div id='premierPlan'><span class='".$decor."'></div>";
+//    return $decor;
+//}
 
 
 function gestionErreur($natureAction,$erreur){
@@ -604,25 +627,32 @@ function getLesEvenementsXML($nomTableau){
     $xml = simplexml_load_file($cheminTableau);
     $children = $xml->lesCellules->children();
     foreach($children as $child) {
-       // echo "<pre>"; print_r($child);
+        //echo "<pre>"; print_r($child);
         $i = 0;
         foreach($child as $value) {
-            if ($i != 0){
+            if (isset($value->type)){
+                $codeCellule = (string) $child->attributes()->id;
+                $uneDecoration = new decoration('t0',$codeCellule,$value->type);
+                $lesDecorations[] = $uneDecoration;
+            }else{
                 $code = (string) $value->attributes()->id;
                 $cellule = (string) $child->attributes()->id;
-                $unEvenement = new evenement($code,$cellule,(string) $value->tourDebute);
-                //$unEvenement = new evenement($laPropriete->id,$laPropriete->titre, $laPropriete->description, $laPropriete->duree, $laPropriete->multiCellule,$cellule,$value->tourDebute);
+                if ($value->multiCellule->axe_x == null || $value->multiCellule->axe_y == null){
+                    $axe_x = null;
+                    $axe_y = null;
+                }else{
+                    $axe_x = (string) $value->multiCellule->axe_x;
+                    $axe_y = (string) $value->multiCellule->axe_y;
+                }
+                $unEvenement = new evenement($code,$cellule,(string) $value->tourDebute, $axe_x, $axe_y);
                 $lesEvenements[] = $unEvenement;
-            }else{
-                $codeCellule = (string) $value->attributes()->id;
-                $uneDecoration = new decoration('0',$codeCellule,$value->type);
-                $lesDecorations[] = $uneDecoration;
             }
             $i++;
         }
-        $GLOBALS['lesEvenements'] = (array) new ArrayObject($lesEvenements);
-        $GLOBALS['lesDecorations'] = (array) new ArrayObject($lesDecorations);
-    }
+    }   
+    $GLOBALS['lesEvenements'] = (array) new ArrayObject($lesEvenements);
+    $GLOBALS['lesDecorations'] = (array) new ArrayObject($lesDecorations);
+    //echo "<pre>"; print_r($GLOBALS['lesEvenements']);
 }
 
 //Instancie les proprietes des tableaux de la carte

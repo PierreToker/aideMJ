@@ -3,12 +3,10 @@ echo "Tableau : ".$_SESSION['nomTableau']."<br/>";
 echo "Tour numéro : ".$_SESSION['nbTours']."<br/>";
 echo "Evenements actifs ce tours-ci<br/>";
 foreach ($evenementsActifs as $unEvenement){
-    $evenement = chercherUnePropriete($unEvenement,"tous");
-    $lesProprietes = explode("||",$evenement);
     echo "----------------<br/>";
-    echo "Titre = ".$lesProprietes[0]."<br/>";
-    echo "Description = ".$lesProprietes[1]."<br/>";
-    echo "Effet = ".$lesProprietes[2]."<br/>";
+    echo "Titre = ".$unEvenement->titre."<br/>";
+    echo "Description = ".$unEvenement->description."<br/>";
+    echo "Effet = ".$unEvenement->effet."<br/>";
     echo "----------------<br/>";
 }
 foreach ($monTableau as $unTableau){

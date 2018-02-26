@@ -1,8 +1,8 @@
 <?php
 class decoration {
-    function __construct($tableau,$code,$type){
+    function __construct($tableau,$codeCellule,$type){
         $this->tableau = $tableau;
-        $this->codeCellule = $code;
+        $this->codeCellule = $codeCellule;
         $this->type = $type;
     }
 

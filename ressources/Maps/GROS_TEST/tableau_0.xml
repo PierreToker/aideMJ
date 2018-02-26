@@ -8,16 +8,31 @@
 	</proprietes>
 	<lesCellules>
 		<cellule id="a0">
+			<evenement id="p0">
+				<tourDebute>1</tourDebute>
+				<multiCellule>
+					<axe_x>a0</axe_x>
+					<axe_y>d4</axe_y>
+				</multiCellule>
+			</evenement>
+		</cellule>
+		<cellule id="b1">
+			<decor>
+				<type>pilier</type>
+			</decor>
+		</cellule>
+		<cellule id="c4">
 			<decor>
 				<type>arbre</type>
 			</decor>
-			<evenement id="p0">
-				<tourDebute>7</tourDebute>
-				<duree>8</duree>
-			</evenement>
-			<evenement id="p3">
-				<tourDebute>4</tourDebute>
-				<duree>11</duree>
+		</cellule>
+		<cellule id="d6">
+			<evenement id="p2">
+				<tourDebute>0</tourDebute>
+				<multiCellule>
+					<axe_x>Null</axe_x>
+					<axe_y>Null</axe_y>
+				</multiCellule>
 			</evenement>
 		</cellule>
 	</lesCellules>

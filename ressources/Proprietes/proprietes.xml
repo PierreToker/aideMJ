@@ -4,11 +4,7 @@
 		<description>Les cendres brûlantes font fondre vos équipements.</description>
 		<effet>Perdez 1 CA pendant la durée de l'événement.</effet>
 		<duree>5</duree>
-		<nomImage>trap</nomImage>
-		<multiCellule>
-			<axe_x>a0</axe_x>
-			<axe_y>c1</axe_y>
-		</multiCellule>
+		<nomImage>redfog</nomImage>
 	</propriete>
 	<propriete id="p1">
 		<titre>Gobelin furtif</titre>
@@ -16,14 +12,19 @@
 		<effet>Vous perdez 2 armes équipés.</effet>
 		<duree>0</duree>
 		<nomImage>trap</nomImage>
-		<multiCellule></multiCellule>
+	</propriete>
+	<propriete id="p2">
+		<titre>Gouffre</titre>
+		<description>Vous tombez dans un trou.</description>
+		<effet>Perdez 1PV.</effet>
+		<duree>0</duree>
+		<nomImage>fall</nomImage>
 	</propriete>
 	<propriete id="p3">
 		<titre>Cache</titre>
 		<description>Vous decouvrez un coffre remplit d'équipements.</description>
 		<effet>Vous gagnez 2 potions de vies.</effet>
-		<duree>100</duree>
+		<duree>10</duree>
 		<nomImage>trap</nomImage>
-		<multiCellule></multiCellule>
 	</propriete>
 </proprietes>
